@@ -8,14 +8,14 @@ class SettingsController extends Controller
 {
     public function indexAction()
     {
-        return $this->render('SmartCoreSettingsBundle:Settings:index.html.twig', [
+        return $this->render('SmartSettingsBundle:Settings:index.html.twig', [
             'settings' => $this->get('settings')->all(),
         ]);
     }
 
     public function editAction($id)
     {
-        return $this->render('SmartCoreSettingsBundle:Settings:edit.html.twig', [
+        return $this->render('SmartSettingsBundle:Settings:edit.html.twig', [
             'setting' => $this->get('settings')->findById($id),
         ]);
     }

@@ -37,7 +37,7 @@ class SettingsManager
     protected function initRepo()
     {
         if (null === $this->settingsRepo) {
-            $this->settingsRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartCoreSettingsBundle:Setting');
+            $this->settingsRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:Setting');
         }
     }
 
