@@ -22,6 +22,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class Setting
 {
+    const TYPE_TEXT = 0;
+    const TYPE_BOOL = 1;
+
     /**
      * @ORM\Id
      * @ORM\Column(type="integer")
@@ -53,6 +56,13 @@ class Setting
     protected $value;
 
     /**
+     * @var int
+     *
+     * @ORM\Column(type="smallint", options={"default":0})
+     */
+    protected $type;
+
+    /**
      * @var bool
      *
      * @ORM\Column(type="boolean")
@@ -65,6 +75,7 @@ class Setting
     public function __construct()
     {
         $this->serialized = false;
+        $this->type       = self::TYPE_TEXT;
     }
 
     /**
@@ -166,5 +177,25 @@ class Setting
     public function getSerialized()
     {
         return $this->serialized;
+    }
+
+    /**
+     * @return int
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * @param int $type
+     *
+     * @return $this
+     */
+    public function setType($type)
+    {
+        $this->type = $type;
+
+        return $this;
     }
 }

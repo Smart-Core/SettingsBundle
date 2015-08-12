@@ -77,14 +77,14 @@ class SettingsManager
      */
     public function get($bundle, $name)
     {
-        $cache_key = md5('smart_setting_'.$bundle.$name);
+        $cache_key = md5('smart_setting'.$bundle.$name);
 
         if (false == $setting = $this->tagcache->get($cache_key)) {
             $this->initRepo();
 
             $setting = $this->settingsRepo->findOneBy([
                 'bundle' => $bundle,
-                'name' => $name,
+                'name'   => $name,
             ]);
 
             if (empty($setting)) {
@@ -97,6 +97,16 @@ class SettingsManager
         return $setting->getValue();
     }
 
+    public function getType($bundle, $name)
+    {
+        $cache_key = md5('smart_setting_type'.$bundle.$name);
+
+        $type = 'text';
+
+
+
+    }
+    
     /**
      * @param Setting $setting
      *

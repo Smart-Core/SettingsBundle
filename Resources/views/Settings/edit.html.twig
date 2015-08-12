@@ -1,2 +1,5 @@
+{% extends '@SmartSettings/layout.html.twig' %}
 
-{{ setting|ld }}
+{% block smart_settings_content %}
+    {% include '@SmartSettings/Settings/edit_content.html.twig' %}
+{% endblock %}

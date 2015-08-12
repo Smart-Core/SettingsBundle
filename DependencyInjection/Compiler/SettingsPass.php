@@ -40,6 +40,7 @@ class SettingsPass implements CompilerPassInterface
                             ->setBundle($bundle->getContainerExtension()->getAlias())
                             ->setName($name)
                             ->setValue($val)
+                            ->setType(is_bool($val) ? Setting::TYPE_BOOL : Setting::TYPE_TEXT)
                         ;
 
                         $errors = $container->get('validator')->validate($setting);
