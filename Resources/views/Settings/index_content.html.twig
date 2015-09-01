@@ -15,9 +15,9 @@
             <td>
                 {% if setting.type == 1 %}
                     {% if setting.value %}
-                        true
+                        <span class="label label-success">true</span>
                     {% else %}
-                        false
+                        <span class="label label-important label-danger">false</span>
                     {% endif %}
                 {% else %}
                     {{ setting.value }}
