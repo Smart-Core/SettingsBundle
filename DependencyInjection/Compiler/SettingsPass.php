@@ -13,8 +13,16 @@ class SettingsPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        /** @var \Doctrine\ORM\EntityManager $em */
-        $em = $container->get('doctrine.orm.entity_manager');
+        try {
+            /** @var \Doctrine\ORM\EntityManager $em */
+            $em = $container->get('doctrine.orm.entity_manager');
+        } catch (\Doctrine\DBAL\Exception\ConnectionException $e) {
+            if ($container->getParameter('kernel.debug')) {
+                echo __CLASS__.': Unavailable DB connection. Please fix it and rebuild cache.';
+            }
+
+            return;
+        }
 
         $validator = new SchemaValidator($em);
         if (false === $validator->schemaInSyncWithMetadata()) {
