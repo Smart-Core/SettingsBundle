@@ -2,6 +2,7 @@
 
 namespace SmartCore\Bundle\SettingsBundle\Manager;
 
+use Doctrine\DBAL\Exception\TableNotFoundException;
 use RickySu\Tagcache\Adapter\TagcacheAdapter;
 use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
@@ -82,13 +83,22 @@ class SettingsManager
         if (false == $setting = $this->tagcache->get($cache_key)) {
             $this->initRepo();
 
-            $setting = $this->settingsRepo->findOneBy([
-                'bundle' => $bundle,
-                'name'   => $name,
-            ]);
+            try {
+                $setting = $this->settingsRepo->findOneBy([
+                    'bundle' => $bundle,
+                    'name'   => $name,
+                ]);
 
-            if (empty($setting)) {
-                throw new \Exception('Wrong bundle-name pair in setting. (Bundle: '.$bundle.', Name: '.$name.')');
+                if (empty($setting)) {
+                    throw new \Exception('Wrong bundle-name pair in setting. (Bundle: '.$bundle.', Name: '.$name.')');
+                }
+            } catch (TableNotFoundException $e) {
+                if ($this->container->getParameter('kernel.debug')) {
+                    // @todo remove
+                    echo "TableNotFoundException for Bundle: $bundle, Name: $name\n";
+                }
+
+                return null;
             }
 
             $this->tagcache->set($cache_key, $setting, ['smart.settings']);
@@ -102,11 +112,8 @@ class SettingsManager
         $cache_key = md5('smart_setting_type'.$bundle.$name);
 
         $type = 'text';
-
-
-
     }
-    
+
     /**
      * @param Setting $setting
      *
