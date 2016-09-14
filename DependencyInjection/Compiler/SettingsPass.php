@@ -43,6 +43,10 @@ class SettingsPass implements CompilerPassInterface
 
                 if (!empty($settingsConfig)) {
                     foreach ($settingsConfig as $name => $val) {
+                        if (empty($bundle->getContainerExtension())) {
+                            continue;
+                        }
+
                         $setting = new Setting();
                         $setting
                             ->setBundle($bundle->getContainerExtension()->getAlias())
