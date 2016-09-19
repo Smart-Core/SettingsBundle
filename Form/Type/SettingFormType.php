@@ -3,7 +3,9 @@
 namespace SmartCore\Bundle\SettingsBundle\Form\Type;
 
 use Smart\CoreBundle\Form\DataTransformer\HtmlTransformer;
+use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -13,7 +15,7 @@ class SettingFormType extends AbstractType
     {
         $builder
             ->add($builder
-                ->create('value', 'text', ['attr' => ['autofocus' => 'autofocus']])
+                ->create('value', TextType::class, ['attr' => ['autofocus' => 'autofocus']])
                 ->addViewTransformer(new HtmlTransformer(false))
             )
         ;
@@ -22,7 +24,7 @@ class SettingFormType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => 'SmartCore\Bundle\SettingsBundle\Entity\Setting',
+            'data_class' => Setting::class,
         ]);
     }
 

@@ -3,7 +3,9 @@
 namespace SmartCore\Bundle\SettingsBundle\Form\Type;
 
 use Smart\CoreBundle\Form\DataTransformer\BooleanToStringTransformer;
+use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -13,7 +15,7 @@ class SettingBoolFormType extends AbstractType
     {
         $builder
             ->add($builder
-                ->create('value', 'checkbox', ['required' => false])
+                ->create('value', CheckboxType::class, ['required' => false])
                 ->addModelTransformer(new BooleanToStringTransformer())
             )
         ;
@@ -22,7 +24,7 @@ class SettingBoolFormType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => 'SmartCore\Bundle\SettingsBundle\Entity\Setting',
+            'data_class' => Setting::class,
         ]);
     }
 

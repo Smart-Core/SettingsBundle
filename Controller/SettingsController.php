@@ -6,6 +6,7 @@ use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use SmartCore\Bundle\SettingsBundle\Form\Type\SettingBoolFormType;
 use SmartCore\Bundle\SettingsBundle\Form\Type\SettingFormType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 
 class SettingsController extends Controller
@@ -30,14 +31,14 @@ class SettingsController extends Controller
     {
         switch ($setting->getType()) {
             case Setting::TYPE_BOOL:
-                $form = $this->createForm(new SettingBoolFormType(), $setting);
+                $form = $this->createForm(SettingBoolFormType::class, $setting);
                 break;
             default:
-                $form = $this->createForm(new SettingFormType(), $setting);
+                $form = $this->createForm(SettingFormType::class, $setting);
         }
 
-        $form->add('update', 'submit', ['attr' => ['class' => 'btn btn-success']]);
-        $form->add('cancel', 'submit', ['attr' => ['class' => 'btn-default', 'formnovalidate' => 'formnovalidate']]);
+        $form->add('update', SubmitType::class, ['attr' => ['class' => 'btn btn-success']]);
+        $form->add('cancel', SubmitType::class, ['attr' => ['class' => 'btn-default', 'formnovalidate' => 'formnovalidate']]);
 
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
