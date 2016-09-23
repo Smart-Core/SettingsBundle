@@ -1,9 +1,9 @@
 {
     "name": "smart-core/settings-bundle",
-    "type": "symfony-bundle",
-    "license": "MIT",
     "description": "SmartCore Settings Bundle.",
     "keywords": ["settings", "bundle"],
+    "type": "symfony-bundle",
+    "license": "MIT",
     "authors": [
         {
             "name": "Artem Ryzhkov",
