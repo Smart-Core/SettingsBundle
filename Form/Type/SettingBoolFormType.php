@@ -28,7 +28,7 @@ class SettingBoolFormType extends AbstractType
         ]);
     }
 
-    public function getName()
+    public function getBlockPrefix()
     {
         return 'smart_core_settings_bool';
     }
