@@ -9,6 +9,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 /**
  * @ORM\Entity
  * @ORM\Table(name="settings",
+ *      indexes={
+ *          @ORM\Index(columns={"category"}),
+ *      },
  *      uniqueConstraints={
  *          @ORM\UniqueConstraint(columns={"bundle", "name"}),
  *      }

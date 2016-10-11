@@ -22,7 +22,16 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-            ->scalarNode('table_prefix')->defaultValue('')->end()
+//                ->scalarNode('table_prefix')
+//                    ->defaultValue('')
+//                ->end()
+                ->scalarNode('setting_manager')
+                    ->defaultValue('smart_core.settings.manager')
+                    ->beforeNormalization()
+                        ->ifString()
+                        ->then(function ($v) { return strtolower($v); })
+                    ->end()
+                ->end()
             ->end();
 
         return $treeBuilder;

@@ -7,6 +7,7 @@ use RickySu\Tagcache\Adapter\TagcacheAdapter;
 use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 
 class SettingsManager
 {
@@ -71,13 +72,24 @@ class SettingsManager
     }
 
     /**
-     * @param string $bundle
-     * @param string $name
+     * @param string      $bundle
+     * @param string|null $name
      *
      * @return mixed
      */
-    public function get($bundle, $name)
+    public function get($bundle, $name = null)
     {
+        if (empty($name)) {
+            $parts = explode('.', $bundle, 2);
+
+            if (count($parts) !== 2) {
+                throw new \Exception('Wrong setting name: "'.$bundle.'"');
+            }
+
+            $bundle = $parts[0];
+            $name   = $parts[1];
+        }
+
         $cache_key = md5('smart_setting'.$bundle.$name);
 
         if (false == $setting = $this->tagcache->get($cache_key)) {
@@ -90,12 +102,12 @@ class SettingsManager
                 ]);
 
                 if (empty($setting)) {
-                    throw new \Exception('Wrong bundle-name pair in setting. (Bundle: '.$bundle.', Name: '.$name.')');
+                    throw new \Exception('Wrong bundle-key pair in setting. (Bundle: '.$bundle.', Key name: '.$name.')');
                 }
             } catch (TableNotFoundException $e) {
                 if ($this->container->getParameter('kernel.debug')) {
                     // @todo remove
-                    echo "TableNotFoundException for Bundle: $bundle, Name: $name\n";
+                    echo "TableNotFoundException for Bundle: $bundle, Key name: $name\n";
                 }
 
                 return null;
@@ -130,5 +142,31 @@ class SettingsManager
         $this->tagcache->deleteTag('smart.settings');
 
         return true;
+    }
+
+    /**
+     * @param string        $bundle
+     * @param string        $name
+     * @param string|array  $value
+     */
+    public function createSetting($bundle, $name, $value)
+    {
+        $setting = new Setting();
+        $setting
+            ->setBundle($bundle)
+            ->setName($name)
+            ->setValue($value)
+        ;
+
+        $errors = $this->container->get('validator')->validate($setting);
+
+        /** @var \Doctrine\ORM\EntityManager $em */
+        $em = $this->container->get('doctrine.orm.entity_manager');
+
+        if (count($errors) > 0) {
+            $em->detach($setting);
+        } else {
+            $em->persist($setting);
+        }
     }
 }

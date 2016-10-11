@@ -2,6 +2,7 @@
 
 namespace SmartCore\Bundle\SettingsBundle;
 
+use SmartCore\Bundle\SettingsBundle\DependencyInjection\Compiler\RegisterSettingsManagerPass;
 use SmartCore\Bundle\SettingsBundle\DependencyInjection\Compiler\SettingsPass;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -13,6 +14,7 @@ class SmartSettingsBundle extends Bundle
     {
         parent::build($container);
 
+        //$container->addCompilerPass(new RegisterSettingsManagerPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION);
         $container->addCompilerPass(new SettingsPass(), PassConfig::TYPE_AFTER_REMOVING);
     }
 }

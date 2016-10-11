@@ -2,6 +2,7 @@
 
 namespace SmartCore\Bundle\SettingsBundle\DependencyInjection;
 
+use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -25,6 +26,9 @@ class SmartSettingsExtension extends Extension
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
 
-        $container->setParameter('smart_core.settings.table_prefix', $config['table_prefix']);
+        //$container->setParameter('smart_core.settings.table_prefix', $config['table_prefix']);
+        $container->setParameter('smart_core.settings.setting_manager', $config['setting_manager']);
+
+        $container->setAlias('settings', new Alias($config['setting_manager']));
     }
 }

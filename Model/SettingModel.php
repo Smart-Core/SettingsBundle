@@ -9,9 +9,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 abstract class SettingModel
 {
     use ColumnTrait\Id;
-
-    const TYPE_TEXT = 0;
-    const TYPE_BOOL = 1;
+    use ColumnTrait\CreatedAt;
+    use ColumnTrait\UpdatedAt;
 
     /**
      * @var string
@@ -24,7 +23,14 @@ abstract class SettingModel
     /**
      * @var string
      *
-     * @ORM\Column(type="string", name="name", length=64, nullable=false)
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $category;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(type="string", length=64, nullable=false)
      * @Assert\NotBlank()
      */
     protected $name;
@@ -37,26 +43,20 @@ abstract class SettingModel
     protected $value;
 
     /**
-     * @var int
-     *
-     * @ORM\Column(type="smallint", options={"default":0})
-     */
-    protected $type;
-
-    /**
      * @var bool
      *
      * @ORM\Column(type="boolean")
      */
-    protected $serialized;
+    protected $is_serialized;
 
     /**
      * Constructor.
      */
     public function __construct()
     {
-        $this->serialized = false;
-        $this->type       = self::TYPE_TEXT;
+        $this->category      = 'default';
+        $this->created_at    = new \DateTime();
+        $this->is_serialized = false;
     }
 
     /**
@@ -88,13 +88,21 @@ abstract class SettingModel
     }
 
     /**
-     * @param string $name
+     * @return string
+     */
+    public function getCategory()
+    {
+        return $this->category;
+    }
+
+    /**
+     * @param string $category
      *
      * @return $this
      */
-    public function setName($name)
+    public function setCategory($category)
     {
-        $this->name = $name;
+        $this->category = $category;
 
         return $this;
     }
@@ -108,6 +116,18 @@ abstract class SettingModel
     }
 
     /**
+     * @param string $name
+     *
+     * @return $this
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    /**
      * @param string $value
      *
      * @return $this
@@ -115,7 +135,7 @@ abstract class SettingModel
     public function setValue($value)
     {
         if (is_array($value)) {
-            $this->serialized = true;
+            $this->is_serialized = true;
             $this->value = serialize($value);
         } else {
             $this->value = $value;
@@ -129,45 +149,25 @@ abstract class SettingModel
      */
     public function getValue()
     {
-        return $this->serialized ? unserialize($this->value) : $this->value;
+        return $this->is_serialized ? unserialize($this->value) : $this->value;
     }
 
     /**
-     * @param bool $serialized
+     * @return boolean
+     */
+    public function isIsSerialized()
+    {
+        return $this->is_serialized;
+    }
+
+    /**
+     * @param boolean $is_serialized
      *
      * @return $this
      */
-    public function setSerialized($serialized)
+    public function setIsSerialized($is_serialized)
     {
-        $this->serialized = $serialized;
-
-        return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function getSerialized()
-    {
-        return $this->serialized;
-    }
-
-    /**
-     * @return int
-     */
-    public function getType()
-    {
-        return $this->type;
-    }
-
-    /**
-     * @param int $type
-     *
-     * @return $this
-     */
-    public function setType($type)
-    {
-        $this->type = $type;
+        $this->is_serialized = $is_serialized;
 
         return $this;
     }

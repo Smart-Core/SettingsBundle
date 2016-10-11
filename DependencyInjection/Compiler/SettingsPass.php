@@ -47,21 +47,7 @@ class SettingsPass implements CompilerPassInterface
                             continue;
                         }
 
-                        $setting = new Setting();
-                        $setting
-                            ->setBundle($bundle->getContainerExtension()->getAlias())
-                            ->setName($name)
-                            ->setValue($val)
-                            ->setType(is_bool($val) ? Setting::TYPE_BOOL : Setting::TYPE_TEXT)
-                        ;
-
-                        $errors = $container->get('validator')->validate($setting);
-
-                        if (count($errors) > 0) {
-                            $em->detach($setting);
-                        } else {
-                            $em->persist($setting);
-                        }
+                        $container->get('settings')->createSetting($bundle->getContainerExtension()->getAlias(), $name, $val);
                     }
 
                     $em->flush();

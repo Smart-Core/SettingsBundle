@@ -36,7 +36,7 @@ class SettingsExtension extends \Twig_Extension
      *
      * @return string
      */
-    public function getSetting($bundle, $name)
+    public function getSetting($bundle, $name = null)
     {
         return $this->settingsManager->get($bundle, $name);
     }
