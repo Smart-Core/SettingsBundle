@@ -142,6 +142,7 @@ class SettingsManager
      */
     public function updateEntity(SettingModel $setting)
     {
+        $setting->setUpdatedAt(new \DateTime());
         $this->em->persist($setting);
         $this->em->flush($setting);
 
