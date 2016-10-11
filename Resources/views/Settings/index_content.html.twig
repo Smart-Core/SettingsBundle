@@ -14,7 +14,7 @@
     {% for setting in settings %}
         <tr>
             {% if is_settings_show_bundle_column() %}
-                <td>{{ setting.bundle }}</td>
+                <td style="width: 1%">{{ setting.bundle }}</td>
             {% endif %}
             <td>
                 {% set setting_title = get_setting_option(setting, 'title') %}
