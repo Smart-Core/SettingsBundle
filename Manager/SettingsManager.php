@@ -5,22 +5,21 @@ namespace SmartCore\Bundle\SettingsBundle\Manager;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use RickySu\Tagcache\Adapter\TagcacheAdapter;
 use SmartCore\Bundle\SettingsBundle\Entity\Setting;
+use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 
 class SettingsManager
 {
     use ContainerAwareTrait;
 
-    /**
-     * @var \Doctrine\ORM\EntityRepository
-     */
-    protected $settingsRepo = null;
+    /** @var \Doctrine\ORM\EntityManager $em */
+    protected $em;
 
-    /**
-     * @var \RickySu\Tagcache\Adapter\TagcacheAdapter
-     */
+    /** @var \Doctrine\ORM\EntityRepository */
+    protected $settingsRepo;
+
+    /** @var TagcacheAdapter */
     protected $tagcache;
 
     /**
@@ -30,6 +29,7 @@ class SettingsManager
     public function __construct(ContainerInterface $container, TagcacheAdapter $tagcache)
     {
         $this->container = $container;
+        $this->em        = $container->get('doctrine.orm.entity_manager');
         $this->tagcache  = $tagcache;
     }
 
@@ -62,7 +62,7 @@ class SettingsManager
     /**
      * @param int $id
      *
-     * @return Setting|null
+     * @return SettingModel|null
      */
     public function findById($id)
     {
@@ -90,7 +90,7 @@ class SettingsManager
             $name   = $parts[1];
         }
 
-        $cache_key = md5('smart_setting'.$bundle.$name);
+        $cache_key = $this->getCacheKey($bundle, $name);
 
         if (false == $setting = $this->tagcache->get($cache_key)) {
             $this->initRepo();
@@ -119,12 +119,25 @@ class SettingsManager
         return $setting->getValue();
     }
 
+    /**
+     * @param string $bundle
+     * @param string $name
+     *
+     * @return string
+     */
+    protected function getCacheKey($bundle, $name)
+    {
+        return md5('smart_setting'.$bundle.$name);
+    }
+
+    /*
     public function getType($bundle, $name)
     {
         $cache_key = md5('smart_setting_type'.$bundle.$name);
 
         $type = 'text';
     }
+    */
 
     /**
      * @param Setting $setting
@@ -133,11 +146,8 @@ class SettingsManager
      */
     public function updateEntity(Setting $setting)
     {
-        /** @var \Doctrine\ORM\EntityManager $em */
-        $em = $this->container->get('doctrine.orm.entity_manager');
-
-        $em->persist($setting);
-        $em->flush($setting);
+        $this->em->persist($setting);
+        $this->em->flush($setting);
 
         $this->tagcache->deleteTag('smart.settings');
 
@@ -145,13 +155,23 @@ class SettingsManager
     }
 
     /**
-     * @param string        $bundle
-     * @param string        $name
-     * @param string|array  $value
+     * @param string       $bundle
+     * @param string       $name
+     * @param string|array $value
      */
     public function createSetting($bundle, $name, $value)
     {
-        $setting = new Setting();
+        $this->persistSetting(new Setting(), $bundle, $name, $value);
+    }
+
+    /**
+     * @param SettingModel $setting
+     * @param string       $bundle
+     * @param string       $name
+     * @param string|array $value
+     */
+    protected function persistSetting(SettingModel $setting, $bundle, $name, $value)
+    {
         $setting
             ->setBundle($bundle)
             ->setName($name)
@@ -160,13 +180,10 @@ class SettingsManager
 
         $errors = $this->container->get('validator')->validate($setting);
 
-        /** @var \Doctrine\ORM\EntityManager $em */
-        $em = $this->container->get('doctrine.orm.entity_manager');
-
         if (count($errors) > 0) {
-            $em->detach($setting);
+            $this->em->detach($setting);
         } else {
-            $em->persist($setting);
+            $this->em->persist($setting);
         }
     }
 }

@@ -3,7 +3,6 @@
 namespace SmartCore\Bundle\SettingsBundle\DependencyInjection\Compiler;
 
 use Doctrine\ORM\Tools\SchemaValidator;
-use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
