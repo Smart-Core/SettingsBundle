@@ -13,6 +13,7 @@
     ],
     "require": {
         "php": ">=5.4.1",
+        "rickysu/tagcache-bundle": "~0.1",
         "smart-core/core-bundle": "dev-master"
     },
     "autoload": {
