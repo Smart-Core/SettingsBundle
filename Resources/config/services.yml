@@ -1,7 +1,7 @@
 services:
     smart_core.settings.manager:
         class: SmartCore\Bundle\SettingsBundle\Manager\SettingsManager
-        arguments: [ "@service_container", "@tagcache" ]
+        arguments: [ "@service_container" ]
 
 #    smart_core.settings.table_prefix_subscriber:
 #        class: SmartCore\Bundle\SettingsBundle\Subscriber\TablePrefixSubscriber

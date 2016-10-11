@@ -6,7 +6,9 @@
 
         {{ form_errors(form) }}
 
-        {{ form(form, {'attr': {'class': 'form-horizontal well'} }) }}
+        {{ form_start(form, {'attr': {'class': 'well'} }) }}
+        {{ form_widget(form) }}
+        {{ form_end(form) }}
 
     </div>
 </div>

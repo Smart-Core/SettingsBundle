@@ -5,7 +5,6 @@ namespace SmartCore\Bundle\SettingsBundle\DependencyInjection\Compiler;
 use Doctrine\ORM\Tools\SchemaValidator;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\Yaml\Yaml;
 
 class SettingsPass implements CompilerPassInterface
@@ -28,14 +27,12 @@ class SettingsPass implements CompilerPassInterface
             return;
         }
 
-        $bundles = $container->getParameter('kernel.bundles');
-
-        foreach ($bundles as $_bundleName => $bundleClass) {
+        foreach ($container->getParameter('kernel.bundles') as $bundleName => $bundleClass) {
             $reflector = new \ReflectionClass($bundleClass);
             $settingsConfig = dirname($reflector->getFileName()).'/Resources/config/settings.yml';
 
             if (file_exists($settingsConfig)) {
-                /** @var Bundle $bundle */
+                /** @var \Symfony\Component\HttpKernel\Bundle\Bundle $bundle */
                 $bundle = new $bundleClass();
 
                 $settingsConfig = Yaml::parse(file_get_contents($settingsConfig));
@@ -44,6 +41,14 @@ class SettingsPass implements CompilerPassInterface
                     foreach ($settingsConfig as $name => $val) {
                         if (empty($bundle->getContainerExtension())) {
                             continue;
+                        }
+
+                        if (is_array($val)) {
+                            if(isset($val['value'])) {
+                                $val = $val['value'];
+                            } else {
+                                throw new \Exception("Missing value for key '$name' in Bundle '$bundleName'.");
+                            }
                         }
 
                         $container->get('settings')->createSetting($bundle->getContainerExtension()->getAlias(), $name, $val);

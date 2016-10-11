@@ -2,12 +2,14 @@
 
 namespace SmartCore\Bundle\SettingsBundle\Manager;
 
+use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\DBAL\Exception\TableNotFoundException;
-use RickySu\Tagcache\Adapter\TagcacheAdapter;
+use SmartCore\Bundle\SettingsBundle\Cache\DummyCacheProvider;
 use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Yaml\Yaml;
 
 class SettingsManager
 {
@@ -19,18 +21,23 @@ class SettingsManager
     /** @var \Doctrine\ORM\EntityRepository */
     protected $settingsRepo;
 
-    /** @var TagcacheAdapter */
-    protected $tagcache;
+    /** @var CacheProvider */
+    protected $cache;
 
     /**
      * @param ContainerInterface $container
-     * @param TagcacheAdapter $tagcache
      */
-    public function __construct(ContainerInterface $container, TagcacheAdapter $tagcache)
+    public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
         $this->em        = $container->get('doctrine.orm.entity_manager');
-        $this->tagcache  = $tagcache;
+        $cache_provider  = $container->getParameter('smart_core.settings.doctrine_cache_provider');
+
+        if (!empty($cache_provider) and $container->has('doctrine_cache.providers'.$cache_provider)) {
+            $this->cache = $container->get('doctrine_cache.providers'.$cache_provider);
+        } else {
+            $this->cache = new DummyCacheProvider();
+        }
     }
 
     /**
@@ -52,11 +59,9 @@ class SettingsManager
     {
         $this->initRepo();
 
-        if ($bundle) {
-            return $this->settingsRepo->findBy(['bundle' => $bundle], ['name' => 'ASC']);
-        }
+        $criteria = $bundle ? ['bundle' => $bundle] : [];
 
-        return $this->settingsRepo->findBy([], ['bundle' => 'ASC', 'name' => 'ASC']);
+        return $this->settingsRepo->findBy($criteria, ['bundle' => 'ASC', 'name' => 'ASC']);
     }
 
     /**
@@ -80,7 +85,7 @@ class SettingsManager
     public function get($bundle, $name = null)
     {
         if (empty($name)) {
-            $parts = explode('.', $bundle, 2);
+            $parts = explode(':', $bundle, 2);
 
             if (count($parts) !== 2) {
                 throw new \Exception('Wrong setting name: "'.$bundle.'"');
@@ -92,7 +97,7 @@ class SettingsManager
 
         $cache_key = $this->getCacheKey($bundle, $name);
 
-        if (false == $setting = $this->tagcache->get($cache_key)) {
+        if (false == $setting = $this->cache->fetch($cache_key)) {
             $this->initRepo();
 
             try {
@@ -113,7 +118,7 @@ class SettingsManager
                 return null;
             }
 
-            $this->tagcache->set($cache_key, $setting, ['smart.settings']);
+            $this->cache->save($cache_key, $setting);
         }
 
         return $setting->getValue();
@@ -130,26 +135,32 @@ class SettingsManager
         return md5('smart_setting'.$bundle.$name);
     }
 
-    /*
-    public function getType($bundle, $name)
-    {
-        $cache_key = md5('smart_setting_type'.$bundle.$name);
-
-        $type = 'text';
-    }
-    */
-
     /**
-     * @param Setting $setting
+     * @param SettingModel $setting
      *
      * @return bool
      */
-    public function updateEntity(Setting $setting)
+    public function updateEntity(SettingModel $setting)
     {
         $this->em->persist($setting);
         $this->em->flush($setting);
 
-        $this->tagcache->deleteTag('smart.settings');
+        $this->cache->delete($this->getCacheKey($setting->getBundle(), $setting->getName()));
+
+        return true;
+    }
+
+    /**
+     * @param SettingModel $setting
+     *
+     * @return bool
+     */
+    public function removeEntity(SettingModel $setting)
+    {
+        $this->em->remove($setting);
+        $this->em->flush($setting);
+
+        $this->cache->delete($this->getCacheKey($setting->getBundle(), $setting->getName()));
 
         return true;
     }
@@ -185,5 +196,69 @@ class SettingsManager
         } else {
             $this->em->persist($setting);
         }
+    }
+
+    /**
+     * @param SettingModel $setting
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function getSettingConfig(SettingModel $setting)
+    {
+        foreach ($this->container->getParameter('kernel.bundles') as $bundleName => $bundleClass) {
+            /** @var \Symfony\Component\HttpKernel\Bundle\Bundle $bundle */
+            $bundle = new $bundleClass();
+
+            if ($bundle->getContainerExtension()->getAlias() != $setting->getBundle()) {
+                continue;
+            }
+
+            $reflector = new \ReflectionClass($bundleClass);
+            $settingsConfig = dirname($reflector->getFileName()).'/Resources/config/settings.yml';
+            if (file_exists($settingsConfig)) {
+                $settingsConfig = Yaml::parse(file_get_contents($settingsConfig));
+
+                if (empty($settingsConfig)) {
+                    continue;
+                }
+
+                if (!isset($settingsConfig[$setting->getName()])) {
+                    $this->removeEntity($setting);
+
+                    return [];
+                }
+
+                return $settingsConfig[$setting->getName()];
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSettingsShowBundleColumn()
+    {
+        return $this->container->getParameter('smart_core.settings.show_bundle_column');
+    }
+
+    /**
+     * @param SettingModel $setting
+     * @param string       $option
+     * @param mixed|null   $default
+     *
+     * @return mixed|null
+     */
+    public function getSettingOption(SettingModel $setting, $option, $default = null)
+    {
+        $settingConfig = $this->getSettingConfig($setting);
+
+        if (is_array($settingConfig) and isset($settingConfig[$option])) {
+            return $settingConfig[$option];
+        }
+
+        return $default;
     }
 }

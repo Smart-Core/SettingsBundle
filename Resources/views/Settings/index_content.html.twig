@@ -3,26 +3,41 @@
 
 <table class="table table-bordered table-hover">
     <thead><tr>
-        <th>{{ 'Bundle'|trans }}</th>
+        {% if is_settings_show_bundle_column() %}
+            <th width="1%">{{ 'Bundle'|trans }}</th>
+        {% endif %}
         <th>{{ 'Name'|trans }}</th>
         <th>{{ 'Value'|trans }}</th>
+        <th>{{ 'Description'|trans }}</th>
     </tr></thead>
     <tbody>
     {% for setting in settings %}
         <tr>
-            <td>{{ setting.bundle }}</td>
-            <td><a href="{{ path('smart_core_setting_edit', {'id': setting.id}) }}">{{ setting.name }}</a></td>
+            {% if is_settings_show_bundle_column() %}
+                <td>{{ setting.bundle }}</td>
+            {% endif %}
             <td>
-                {% if setting.type == 1 %}
+                {% set setting_title = get_setting_option(setting, 'title') %}
+
+                {% if setting_title %}
+                    <a href="{{ path('smart_core_setting_edit', {'id': setting.id}) }}" title="{{ setting.name }}"><b>{{ setting_title|trans }}</b></a>
+                {% else %}
+                    <a href="{{ path('smart_core_setting_edit', {'id': setting.id}) }}">{{ setting.name }}</a>
+                {% endif %}
+
+            </td>
+            <td>
+                {% if is_setting_bool(setting) %}
                     {% if setting.value %}
-                        <span class="label label-success">true</span>
+                        <span class="label label-success">{{ 'Yes'|trans }}</span>
                     {% else %}
-                        <span class="label label-important label-danger">false</span>
+                        <span class="label label-important label-danger">{{ 'No'|trans }}</span>
                     {% endif %}
                 {% else %}
                     {{ setting.value }}
                 {% endif %}
             </td>
+            <td>{{ get_setting_option(setting, 'description') }}</td>
         </tr>
     {% endfor %}
     </tbody>
