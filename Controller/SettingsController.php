@@ -6,7 +6,6 @@ use Smart\CoreBundle\Controller\Controller;
 use Smart\CoreBundle\Form\DataTransformer\BooleanToStringTransformer;
 use Smart\CoreBundle\Form\DataTransformer\HtmlTransformer;
 use SmartCore\Bundle\SettingsBundle\Manager\SettingsManager;
-use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -115,8 +114,10 @@ class SettingsController extends Controller
             }
 
             if ($form->isValid()) {
-                $this->get('settings')->updateEntity($form->getData());
-                $this->addFlash('success', 'Настройка обновлена');
+                $setting = $form->getData();
+
+                $this->get('settings')->updateEntity($setting);
+                $this->addFlash('success', "Настройка <b>".$setting->getName()."</b> обновлена.");
 
                 return $this->redirectToRoute('smart_core_settings');
             }

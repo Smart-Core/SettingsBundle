@@ -211,7 +211,7 @@ class SettingsManager
             /** @var \Symfony\Component\HttpKernel\Bundle\Bundle $bundle */
             $bundle = new $bundleClass();
 
-            if ($bundle->getContainerExtension()->getAlias() != $setting->getBundle()) {
+            if (empty($bundle->getContainerExtension()) or  $bundle->getContainerExtension()->getAlias() != $setting->getBundle()) {
                 continue;
             }
 
