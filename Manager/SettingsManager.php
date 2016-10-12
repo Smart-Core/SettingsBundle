@@ -77,23 +77,20 @@ class SettingsManager
     }
 
     /**
-     * @param string      $bundle
-     * @param string|null $name
+     * @param string $pattern
      *
      * @return mixed
      */
-    public function get($bundle, $name = null)
+    public function get($pattern)
     {
-        if (empty($name)) {
-            $parts = explode(':', $bundle, 2);
+        $parts = explode(':', $pattern, 2);
 
-            if (count($parts) !== 2) {
-                throw new \Exception('Wrong setting name: "'.$bundle.'"');
-            }
-
-            $bundle = $parts[0];
-            $name   = $parts[1];
+        if (count($parts) !== 2) {
+            throw new \Exception('Wrong setting name: "'.$pattern.'"');
         }
+
+        $bundle = $parts[0];
+        $name   = $parts[1];
 
         $cache_key = $this->getCacheKey($bundle, $name);
 

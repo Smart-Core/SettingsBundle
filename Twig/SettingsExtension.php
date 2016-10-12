@@ -35,26 +35,24 @@ class SettingsExtension extends \Twig_Extension
     }
 
     /**
-     * @param string $bundle
-     * @param string $name
+     * @param string $pattern
      *
      * @return string
      */
-    public function getSetting($bundle, $name = null)
+    public function getSetting($pattern)
     {
-        return $this->settingsManager->get($bundle, $name);
+        return $this->settingsManager->get($pattern);
     }
 
     /**
-     * @param string $bundle
-     * @param string $name
+     * @param string $pattern
      * @param string $value
      *
      * @return bool
      */
-    public function isSetting($bundle, $name, $value)
+    public function isSetting($pattern, $value)
     {
-        if ($this->settingsManager->get($bundle, $name) == $value) {
+        if ($this->settingsManager->get($pattern) == $value) {
             return true;
         }
 
