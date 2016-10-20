@@ -43,10 +43,12 @@ class SettingsManager
 
     /**
      * Lazy repository initialization.
+     *
+     * @param bool $force
      */
-    protected function initRepo()
+    public function initRepo($force = false)
     {
-        if (null === $this->settingsRepo) {
+        if (null === $this->settingsRepo or $force) {
             $this->settingsRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:Setting');
         }
     }
