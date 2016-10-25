@@ -4,6 +4,7 @@ namespace SmartCore\Bundle\SettingsBundle\Manager;
 
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\DBAL\Exception\TableNotFoundException;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\ORM\Tools\SchemaValidator;
 use SmartCore\Bundle\SettingsBundle\Cache\DummyCacheProvider;
 use SmartCore\Bundle\SettingsBundle\Entity\Setting;
@@ -265,9 +266,13 @@ class SettingsManager
 
     public function warmupDatabase()
     {
-        $validator = new SchemaValidator($this->em);
-        if (false === $validator->schemaInSyncWithMetadata()) {
-            return;
+        try {
+            $validator = new SchemaValidator($this->em);
+            if (false === $validator->schemaInSyncWithMetadata()) {
+                return;
+            }
+        } catch (SchemaException $e) {
+            // do nothing
         }
 
         foreach ($this->container->getParameter('kernel.bundles') as $bundleName => $bundleClass) {
