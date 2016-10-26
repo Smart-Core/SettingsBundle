@@ -101,12 +101,20 @@ class SettingsManager
             $this->initRepo();
 
             try {
+                $tryCount = 1;
+
+                trygetsetting:
+
                 $setting = $this->settingsRepo->findOneBy([
                     'bundle' => $bundle,
                     'name'   => $name,
                 ]);
 
-                if (empty($setting)) {
+                if ($tryCount == 1 and empty($setting)) {
+                    $this->warmupDatabase();
+                    $tryCount = 2;
+                    goto trygetsetting;
+                } elseif ($tryCount > 1) {
                     throw new \Exception('Wrong bundle-key pair in setting. (Bundle: '.$bundle.', Key name: '.$name.')');
                 }
             } catch (TableNotFoundException $e) {
