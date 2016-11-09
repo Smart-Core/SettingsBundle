@@ -34,8 +34,8 @@ class SettingsManager
         $this->em        = $container->get('doctrine.orm.entity_manager');
         $cache_provider  = $container->getParameter('smart_core.settings.doctrine_cache_provider');
 
-        if (!empty($cache_provider) and $container->has('doctrine_cache.providers'.$cache_provider)) {
-            $this->cache = $container->get('doctrine_cache.providers'.$cache_provider);
+        if (!empty($cache_provider) and $container->has('doctrine_cache.providers.'.$cache_provider)) {
+            $this->cache = $container->get('doctrine_cache.providers.'.$cache_provider);
         } else {
             $this->cache = new DummyCacheProvider();
         }
