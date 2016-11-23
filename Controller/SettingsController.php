@@ -6,6 +6,7 @@ use Smart\CoreBundle\Controller\Controller;
 use Smart\CoreBundle\Form\DataTransformer\BooleanToStringTransformer;
 use Smart\CoreBundle\Form\DataTransformer\HtmlTransformer;
 use SmartCore\Bundle\SettingsBundle\Manager\SettingsManager;
+use SmartCore\Bundle\SettingsBundle\Model\SettingHistoryModel;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -116,8 +117,11 @@ class SettingsController extends Controller
             if ($form->isValid()) {
                 $setting = $form->getData();
 
-                $this->get('settings')->updateEntity($setting);
-                $this->addFlash('success', "Настройка <b>".$setting->getName()."</b> обновлена.");
+                if ($this->get('settings')->updateEntity($setting)) {
+                    $this->addFlash('success', "Настройка <b>".$setting->getName()."</b> обновлена.");
+                } else {
+                    $this->addFlash('warning', "Настройка <b>".$setting->getName()."</b> не обновлена.");
+                }
 
                 return $this->redirectToRoute('smart_core_settings');
             }
@@ -127,5 +131,57 @@ class SettingsController extends Controller
             'form'    => $form->createView(),
             'setting' => $setting,
         ]);
+    }
+
+    /**
+     * @param Request $request
+     * @param int     $id
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function historyAction($id)
+    {
+        /** @var SettingsManager $settingsManager */
+        $settingsManager = $this->get('settings');
+
+        $setting = $settingsManager->findById($id);
+
+        if (empty($setting)) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render('@SmartSettings/Settings/history.html.twig', [
+            'setting' => $setting,
+        ]);
+    }
+
+    /**
+     * @param $id
+     */
+    public function rollbackAction($id)
+    {
+        /** @var SettingsManager $settingsManager */
+        $settingsManager = $this->get('settings');
+
+        $historyItem = $settingsManager->findHistoryById($id);
+
+        if (empty($historyItem)) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($historyItem) {
+            $setting = $historyItem->getSetting();
+            $setting->setValue($historyItem->getValue());
+
+            if ($this->get('settings')->updateEntity($setting)) {
+                $this->addFlash('success', 'Откат успешно выполнен.');
+            } else {
+                $this->addFlash('warning', "Настройка <b>".$setting->getName()."</b> не обновлена.");
+            }
+        } else {
+            $this->addFlash('error', 'Непредвиденная ошибка при выполнении отката');
+        }
+
+        return $this->redirect($this->generateUrl('smart_core_settings'));
     }
 }

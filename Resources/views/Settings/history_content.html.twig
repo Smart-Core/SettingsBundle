@@ -1,0 +1,50 @@
+
+<div class="box box-success">
+    <div class="box-header with-border">
+
+        <h3>История изменений настройки: &laquo;<a href="{{ path('smart_core_setting_edit', {'id': setting.id}) }}">{{ setting }}</a>&raquo;</h3>
+
+        <a href="{{ path('smart_core_settings') }}">
+            <i class="fa fa-arrow-circle-o-left"></i>
+            Назад к списку всех настроек.
+        </a>
+
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>{{ 'Date'|trans }}</th>
+                <th>{{ 'Value'|trans }}</th>
+                <th>{{ 'User'|trans }}</th>
+                <th>{{ 'Action'|trans }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in setting.history %}
+                <tr>
+                    <td>{{ item.createdAt|localizeddate('medium') }}</td>
+                    <td>
+                        {% if is_setting_bool(setting) %}
+                            {% if item.value %}
+                                <span class="label label-success">{{ 'Yes'|trans }}</span>
+                            {% else %}
+                                <span class="label label-important label-danger">{{ 'No'|trans }}</span>
+                            {% endif %}
+                        {% else %}
+                            {{ item.value }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.user %}
+                            {{ item.user.username }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ path('smart_core_setting_history_rollback', {'id': item.id}) }}" title=""><i class="icon-forward"></i><span class="glyphicon glyphicon-forward" aria-hidden="true"></span>Откатить</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+</div>

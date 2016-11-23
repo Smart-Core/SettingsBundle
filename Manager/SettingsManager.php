@@ -5,11 +5,15 @@ namespace SmartCore\Bundle\SettingsBundle\Manager;
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use Doctrine\ORM\Tools\SchemaValidator;
+use FOS\UserBundle\Model\UserInterface;
 use SmartCore\Bundle\SettingsBundle\Cache\DummyCacheProvider;
 use SmartCore\Bundle\SettingsBundle\Entity\Setting;
+use SmartCore\Bundle\SettingsBundle\Entity\SettingHistory;
+use SmartCore\Bundle\SettingsBundle\Model\SettingHistoryModel;
 use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Yaml\Yaml;
 
 class SettingsManager
@@ -21,6 +25,9 @@ class SettingsManager
 
     /** @var \Doctrine\ORM\EntityRepository */
     protected $settingsRepo;
+
+    /** @var \Doctrine\ORM\EntityRepository */
+    protected $settingsHistoryRepo;
 
     /** @var CacheProvider */
     protected $cache;
@@ -49,7 +56,8 @@ class SettingsManager
     public function initRepo($force = false)
     {
         if (null === $this->settingsRepo or $force) {
-            $this->settingsRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:Setting');
+            $this->settingsRepo        = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:Setting');
+            $this->settingsHistoryRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:SettingHistory');
         }
     }
 
@@ -77,6 +85,18 @@ class SettingsManager
         $this->initRepo();
 
         return $this->settingsRepo->find($id);
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return SettingHistoryModel|null
+     */
+    public function findHistoryById($id)
+    {
+        $this->initRepo();
+
+        return $this->settingsHistoryRepo->find($id);
     }
 
     /**
@@ -150,13 +170,30 @@ class SettingsManager
      */
     public function updateEntity(SettingModel $setting)
     {
-        $setting->setUpdatedAt(new \DateTime());
-        $this->em->persist($setting);
-        $this->em->flush($setting);
+        $uow = $this->em->getUnitOfWork();
+        $uow->computeChangeSets();
 
-        $this->cache->delete($this->getCacheKey($setting->getBundle(), $setting->getName()));
+        if ($uow->isEntityScheduled($setting)) {
+            $history = $this->factorySettingHistory($setting);
+            $history->setValue($setting->getValue());
 
-        return true;
+            $token = $this->container->get('security.token_storage')->getToken();
+            if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
+                $history->setUser($token->getUser());
+            }
+
+            $this->em->persist($history);
+            $this->em->flush($history);
+
+            $this->em->persist($setting);
+            $this->em->flush($setting);
+
+            $this->cache->delete($this->getCacheKey($setting->getBundle(), $setting->getName()));
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -182,6 +219,14 @@ class SettingsManager
     public function createSetting($bundle, $name, $value)
     {
         $this->persistSetting(new Setting(), $bundle, $name, $value);
+    }
+
+    /**
+     * @return SettingHistory
+     */
+    public function factorySettingHistory(SettingModel $setting)
+    {
+        return new SettingHistory($setting);
     }
 
     /**

@@ -50,6 +50,13 @@ abstract class SettingModel
     protected $is_serialized;
 
     /**
+     * @var SettingHistoryModel[]
+     *
+     * @ORM\OneToMany(targetEntity="SettingHistory", mappedBy="setting", fetch="EXTRA_LAZY")
+     */
+    protected $history;
+
+    /**
      * Constructor.
      */
     public function __construct()
@@ -65,6 +72,14 @@ abstract class SettingModel
     public function __toString()
     {
         return (string) $this->bundle.':'.$this->name;
+    }
+
+    /**
+     * @ORM\PreUpdate()
+     */
+    public function preUpdateEvent()
+    {
+        $this->updated_at = new \DateTime();
     }
 
     /**
@@ -168,6 +183,26 @@ abstract class SettingModel
     public function setIsSerialized($is_serialized)
     {
         $this->is_serialized = $is_serialized;
+
+        return $this;
+    }
+
+    /**
+     * @return SettingHistoryModel[]
+     */
+    public function getHistory()
+    {
+        return $this->history;
+    }
+
+    /**
+     * @param SettingHistoryModel[] $history
+     *
+     * @return $this
+     */
+    public function setHistory($history)
+    {
+        $this->history = $history;
 
         return $this;
     }

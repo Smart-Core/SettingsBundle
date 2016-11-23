@@ -7,3 +7,19 @@ smart_core_setting_edit:
     path: /{id}/
     defaults:
         _controller: SmartSettingsBundle:Settings:edit
+    requirements:
+        id: \d+
+
+smart_core_setting_history:
+    path: /{id}/history/
+    defaults:
+        _controller: SmartSettingsBundle:Settings:history
+    requirements:
+        id: \d+
+
+smart_core_setting_history_rollback:
+    path: /rollback/{id}/
+    defaults:
+        _controller: SmartSettingsBundle:Settings:rollback
+    requirements:
+        id: \d+
