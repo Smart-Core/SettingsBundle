@@ -32,6 +32,9 @@ class SettingsManager
     /** @var CacheProvider */
     protected $cache;
 
+    /** @var array */
+    protected $settingsConfigRuntimeCache;
+
     /**
      * @param ContainerInterface $container
      */
@@ -39,6 +42,7 @@ class SettingsManager
     {
         $this->container = $container;
         $this->em        = $container->get('doctrine.orm.entity_manager');
+        $this->settingsConfigRuntimeCache = [];
         $cache_provider  = $container->getParameter('smart_core.settings.doctrine_cache_provider');
 
         if (!empty($cache_provider) and $container->has('doctrine_cache.providers.'.$cache_provider)) {
@@ -264,26 +268,33 @@ class SettingsManager
             /** @var \Symfony\Component\HttpKernel\Bundle\Bundle $bundle */
             $bundle = new $bundleClass();
 
-            if (empty($bundle->getContainerExtension()) or  $bundle->getContainerExtension()->getAlias() != $setting->getBundle()) {
+            if (empty($bundle->getContainerExtension()) or $bundle->getContainerExtension()->getAlias() != $setting->getBundle()) {
                 continue;
             }
 
-            $reflector = new \ReflectionClass($bundleClass);
-            $settingsConfig = dirname($reflector->getFileName()).'/Resources/config/settings.yml';
-            if (file_exists($settingsConfig)) {
-                $settingsConfig = Yaml::parse(file_get_contents($settingsConfig));
+            if (isset($this->settingsConfigRuntimeCache[$setting->getBundle()][$setting->getName()])) {
+                return $this->settingsConfigRuntimeCache[$setting->getBundle()][$setting->getName()];
+            } else {
+                $reflector = new \ReflectionClass($bundleClass);
+                $settingsConfigFile = dirname($reflector->getFileName()).'/Resources/config/settings.yml';
 
-                if (empty($settingsConfig)) {
-                    continue;
+                if (file_exists($settingsConfigFile)) {
+                    $settingsConfig = Yaml::parse(file_get_contents($settingsConfigFile));
+
+                    if (empty($settingsConfig)) {
+                        continue;
+                    }
+
+                    if (!isset($settingsConfig[$setting->getName()])) {
+                        $this->removeEntity($setting);
+
+                        return [];
+                    }
+
+                    $this->settingsConfigRuntimeCache[$setting->getBundle()] = $settingsConfig;
+
+                    return $settingsConfig[$setting->getName()];
                 }
-
-                if (!isset($settingsConfig[$setting->getName()])) {
-                    $this->removeEntity($setting);
-
-                    return [];
-                }
-
-                return $settingsConfig[$setting->getName()];
             }
         }
 
@@ -316,6 +327,25 @@ class SettingsManager
         return $default;
     }
 
+    /**
+     * @param SettingModel $setting
+     *
+     * @return string
+     */
+    public function getSettingChoiceTitle(SettingModel $setting)
+    {
+        $settingConfig = $this->getSettingConfig($setting);
+
+        if (isset($settingConfig['choices']) and isset($settingConfig['choices'][$setting->getValue()])) {
+            return $settingConfig['choices'][$setting->getValue()];
+        }
+
+        return 'N/A';
+    }
+
+    /**
+     * @throws \Exception
+     */
     public function warmupDatabase()
     {
         $validator = new SchemaValidator($this->em);

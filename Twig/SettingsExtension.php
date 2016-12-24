@@ -29,6 +29,8 @@ class SettingsExtension extends \Twig_Extension
             new \Twig_SimpleFunction('setting',  [$this, 'getSetting']),
             new \Twig_SimpleFunction('is_setting',  [$this, 'isSetting']),
             new \Twig_SimpleFunction('is_setting_bool',  [$this, 'isSettingBool']),
+            new \Twig_SimpleFunction('is_setting_choice',  [$this, 'isSettingChoice']),
+            new \Twig_SimpleFunction('get_setting_choice_title',  [$this, 'getSettingChoiceTitle']),
             new \Twig_SimpleFunction('get_setting_option',  [$this, 'getSettingOption']),
             new \Twig_SimpleFunction('is_settings_show_bundle_column',  [$this, 'isSettingsShowBundleColumn']),
         ];
@@ -77,6 +79,22 @@ class SettingsExtension extends \Twig_Extension
 
     /**
      * @param SettingModel $setting
+     *
+     * @return bool
+     */
+    public function isSettingChoice(SettingModel $setting)
+    {
+        $settingConfig = $this->settingsManager->getSettingConfig($setting);
+
+        if (is_array($settingConfig) and isset($settingConfig['type']) and $settingConfig['type'] == 'ChoiceType') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param SettingModel $setting
      * @param string       $option
      *
      * @return mixed|null
@@ -94,6 +112,15 @@ class SettingsExtension extends \Twig_Extension
         return $this->settingsManager->isSettingsShowBundleColumn();
     }
 
+    /**
+     * @param SettingModel $setting
+     *
+     * @return string
+     */
+    public function getSettingChoiceTitle(SettingModel $setting)
+    {
+        return $this->settingsManager->getSettingChoiceTitle($setting);
+    }
 
     /**
      * @return string
