@@ -30,6 +30,6 @@ class SettingBoolFormType extends AbstractType
 
     public function getBlockPrefix()
     {
-        return 'smart_core_settings_bool';
+        return 'smart_core_setting_bool';
     }
 }

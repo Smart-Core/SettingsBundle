@@ -4,13 +4,19 @@
 
 <h3>{{ 'Settings'|trans }}</a></h3>
 
+<ul class="nav nav-tabs">
+    <li role="presentation" {% if personal == false %} class="active" {% endif %}><a href="{{ path('smart_core_settings') }}">Глобальные</a></li>
+    <li role="presentation" {% if personal == true %} class="active" {% endif %}><a href="{{ path('smart_core_settings_personal') }}">Персональные</a></li>
+</ul>
+
 <table class="table table-bordered table-hover">
     <thead><tr>
         {% if is_settings_show_bundle_column() %}
             <th width="1%">{{ 'Bundle'|trans }}</th>
         {% endif %}
         <th>{{ 'Name'|trans }}</th>
-        <th>{{ 'Value'|trans }}</th>
+        {% if personal == true %}<th>{{ 'My value'|trans }}</th>{% endif %}
+        <th>{% if personal %}{{ 'Default value'|trans }}{% else %}{{ 'Value'|trans }}{% endif %}</th>
         <th>{{ 'Description'|trans }}</th>
     </tr></thead>
     <tbody>
@@ -22,13 +28,37 @@
             <td>
                 {% set setting_title = get_setting_option(setting, 'title') %}
 
-                {% if setting_title %}
-                    <a href="{{ path('smart_core_setting_edit', {'id': setting.id}) }}" title="{{ setting.name }}"><b>{{ setting_title|trans }}</b></a>
+                {% if personal %}
+                    {% set edit_path = 'smart_core_setting_edit_personal' %}
                 {% else %}
-                    <a href="{{ path('smart_core_setting_edit', {'id': setting.id}) }}">{{ setting.name }}</a>
+                    {% set edit_path = 'smart_core_setting_edit' %}
                 {% endif %}
 
+                {% if setting_title %}
+                    <a href="{{ path(edit_path, {'bundle': setting.bundle, 'name': setting.name}) }}" title="{{ setting.name }}"><b>{{ setting_title|trans }}</b></a>
+                {% else %}
+                    <a href="{{ path(edit_path, {'bundle': setting.bundle, 'name': setting.name}) }}">{{ setting.name }}</a>
+                {% endif %}
             </td>
+            {% if personal %}
+            <td>
+                {% set setting_personal_value = setting(setting.bundle ~ ':' ~ setting.name) %}
+
+                {% if not has_setting_personal(setting) %}
+                    <i>(по умолчанию)</i>
+                {% elseif is_setting_bool(setting) %}
+                    {% if setting_personal_value %}
+                        <span class="label label-success">{{ 'Yes'|trans }}</span>
+                    {% else %}
+                        <span class="label label-important label-danger">{{ 'No'|trans }}</span>
+                    {% endif %}
+                {% elseif is_setting_choice(setting) %}
+                    <abbr title="{{ setting_personal_value }}">{{ get_setting_choice_title(setting, setting_personal_value) }}</abbr>
+                {% else %}
+                    {{ setting_personal_value }}
+                {% endif %}
+            </td>
+            {% endif %}
             <td>
                 {% if is_setting_bool(setting) %}
                     {% if setting.value %}

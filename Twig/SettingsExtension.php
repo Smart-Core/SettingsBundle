@@ -27,12 +27,13 @@ class SettingsExtension extends \Twig_Extension
     {
         return [
             new \Twig_SimpleFunction('setting',  [$this, 'getSetting']),
-            new \Twig_SimpleFunction('is_setting',  [$this, 'isSetting']),
+            new \Twig_SimpleFunction('is_setting',  [$this, 'isSettingEquals']),
             new \Twig_SimpleFunction('is_setting_bool',  [$this, 'isSettingBool']),
             new \Twig_SimpleFunction('is_setting_choice',  [$this, 'isSettingChoice']),
             new \Twig_SimpleFunction('get_setting_choice_title',  [$this, 'getSettingChoiceTitle']),
             new \Twig_SimpleFunction('get_setting_option',  [$this, 'getSettingOption']),
             new \Twig_SimpleFunction('is_settings_show_bundle_column',  [$this, 'isSettingsShowBundleColumn']),
+            new \Twig_SimpleFunction('has_setting_personal',  [$this, 'hasSettingPersonal']),
         ];
     }
 
@@ -52,7 +53,7 @@ class SettingsExtension extends \Twig_Extension
      *
      * @return bool
      */
-    public function isSetting($pattern, $value)
+    public function isSettingEquals($pattern, $value)
     {
         if ($this->settingsManager->get($pattern) == $value) {
             return true;
@@ -114,12 +115,23 @@ class SettingsExtension extends \Twig_Extension
 
     /**
      * @param SettingModel $setting
+     * @param string|null  $value
      *
      * @return string
      */
-    public function getSettingChoiceTitle(SettingModel $setting)
+    public function getSettingChoiceTitle(SettingModel $setting, $value = null)
     {
-        return $this->settingsManager->getSettingChoiceTitle($setting);
+        return $this->settingsManager->getSettingChoiceTitle($setting, $value);
+    }
+
+    /**
+     * @param SettingModel $setting
+     *
+     * @return bool
+     */
+    public function hasSettingPersonal(SettingModel $setting)
+    {
+        return $this->settingsManager->hasSettingPersonal($setting);
     }
 
     /**

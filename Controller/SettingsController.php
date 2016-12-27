@@ -6,6 +6,8 @@ use Smart\CoreBundle\Controller\Controller;
 use Smart\CoreBundle\Form\DataTransformer\BooleanToStringTransformer;
 use Smart\CoreBundle\Form\DataTransformer\HtmlTransformer;
 use SmartCore\Bundle\SettingsBundle\Manager\SettingsManager;
+use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
+use SmartCore\Bundle\SettingsBundle\Model\SettingPersonalModel;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -15,33 +17,65 @@ use Symfony\Component\HttpFoundation\Request;
 class SettingsController extends Controller
 {
     /**
+     * @param bool $personal
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function indexAction()
+    public function indexAction($personal = false)
     {
+        $settings = $this->get('settings')->all();
+
+        if ($personal) {
+            /** @var SettingModel $setting */
+            foreach ($settings as $key => $setting) {
+                $options = $this->get('settings')->getSettingConfig($setting);
+                if (is_array($options) and isset($options['personalize']) and $options['personalize'] == true) {
+                    // ok
+                } else {
+                    unset($settings[$key]);
+                }
+            }
+        }
+
         return $this->render('@SmartSettings/Settings/index.html.twig', [
-            'settings' => $this->get('settings')->all(),
+            'personal' => $personal,
+            'settings' => $settings,
         ]);
     }
 
     /**
      * @param Request $request
-     * @param int     $id
+     * @param int     $bundle
+     * @param string  $name
+     * @param bool    $personal
      *
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
+     * @throws \Exception
      */
-    public function editAction(Request $request, $id)
+    public function editAction(Request $request, $bundle, $name, $personal = false)
     {
         /** @var SettingsManager $settingsManager */
         $settingsManager = $this->get('settings');
 
-        $setting = $settingsManager->findById($id);
+        $setting = $settingsManager->findBy($bundle, $name);
 
         if (empty($setting)) {
             throw $this->createNotFoundException();
         }
 
-        $builder = $this->createFormBuilder($setting);
+        if ($personal) {
+            /** @var SettingPersonalModel $settingPersonal */
+            $settingPersonal = $settingsManager->findPersonal($setting, $this->getUser());
+
+            if (empty($settingPersonal)) {
+                $settingPersonal = $settingsManager->factorySettingPersonal($setting);
+            } else {
+                $settingPersonal->setUseDefault(false);
+            }
+            $builder = $this->createFormBuilder($settingPersonal);
+        } else {
+            $builder = $this->createFormBuilder($setting);
+        }
 
         $formType    = TextType::class;
         $formOptions = [];
@@ -62,7 +96,7 @@ class SettingsController extends Controller
 
         $formOptions['attr'] = [
             'autofocus' => 'autofocus',
-            'class' => 'focused'
+            'class' => 'focused',
         ];
 
         $formOptions['required'] = $settingsManager->getSettingOption($setting, 'required', true);
@@ -76,6 +110,10 @@ class SettingsController extends Controller
             }
         }
         $formOptions['constraints'] = $constraintsObjects;
+
+        if ($personal) {
+            $builder->add('use_default', CheckboxType::class, ['required' => false]);
+        }
 
         switch ($formType) {
             case CheckboxType::class:
@@ -102,7 +140,7 @@ class SettingsController extends Controller
         }
 
         $form = $builder
-            ->add('update', SubmitType::class, ['attr' => ['class' => 'btn btn-success']])
+            ->add('save',   SubmitType::class, ['attr' => ['class' => 'btn btn-success']])
             ->add('cancel', SubmitType::class, ['attr' => ['class' => 'btn btn-default', 'formnovalidate' => 'formnovalidate']])
             ->getForm();
 
@@ -110,6 +148,10 @@ class SettingsController extends Controller
             $form->handleRequest($request);
 
             if ($form->get('cancel')->isClicked()) {
+                if ($personal) {
+                    return $this->redirectToRoute('smart_core_settings_personal');
+                }
+
                 return $this->redirectToRoute('smart_core_settings');
             }
 
@@ -122,13 +164,18 @@ class SettingsController extends Controller
                     $this->addFlash('warning', "Настройка <b>".$setting->getName()."</b> не обновлена.");
                 }
 
+                if ($personal) {
+                    return $this->redirectToRoute('smart_core_settings_personal');
+                }
+
                 return $this->redirectToRoute('smart_core_settings');
             }
         }
 
         return $this->render('@SmartSettings/Settings/edit.html.twig', [
-            'form'    => $form->createView(),
-            'setting' => $setting,
+            'form'     => $form->createView(),
+            'personal' => $personal,
+            'setting'  => $setting,
         ]);
     }
 

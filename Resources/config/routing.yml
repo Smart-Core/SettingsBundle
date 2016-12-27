@@ -3,12 +3,22 @@ smart_core_settings:
     defaults:
         _controller: SmartSettingsBundle:Settings:index
 
+smart_core_settings_personal:
+    path: /personal/
+    defaults:
+        _controller: SmartSettingsBundle:Settings:index
+        personal: true
+
 smart_core_setting_edit:
-    path: /{id}/
+    path: /{bundle}:{name}/
     defaults:
         _controller: SmartSettingsBundle:Settings:edit
-    requirements:
-        id: \d+
+
+smart_core_setting_edit_personal:
+    path: /personal/{bundle}:{name}/
+    defaults:
+        _controller: SmartSettingsBundle:Settings:edit
+        personal: true
 
 smart_core_setting_history:
     path: /{id}/history/

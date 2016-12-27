@@ -2,14 +2,18 @@
 <div class="box box-success">
     <div class="box-header with-border">
         {#<div >#}
-            <a href="{{ path('smart_core_setting_history', {'id': setting.id}) }}" class="btn btn-default" style="float: right;">История измнений</a>
+            <a href="{{ path('smart_core_setting_history', {'id': setting.id}) }}" class="btn btn-default" style="float: right; margin-top: 2px;">История измнений</a>
         {#</div>#}
 
-        <h3>Редактирование настройки: &laquo;{{ setting }}&raquo;</h3>
+        {% if personal %}
+            <h3>Редактирование персональной настройки: &laquo;{{ setting }}&raquo;</h3>
+        {% else %}
+            <h3>Редактирование настройки: &laquo;{{ setting }}&raquo;</h3>
+        {% endif %}
 
         {{ form_errors(form) }}
 
-        {{ form_start(form, {'attr': {'class': 'well'} }) }}
+        {{ form_start(form, {'attr': {'class': 'well form-horizontal'} }) }}
         {{ form_widget(form) }}
         {{ form_end(form) }}
 

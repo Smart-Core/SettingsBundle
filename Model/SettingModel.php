@@ -170,7 +170,7 @@ abstract class SettingModel
     /**
      * @return boolean
      */
-    public function isIsSerialized()
+    public function getIsSerialized()
     {
         return $this->is_serialized;
     }

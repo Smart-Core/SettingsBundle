@@ -12,6 +12,13 @@ class SettingHistoryModel
     use ColumnTrait\FosUser;
 
     /**
+     * @var bool
+     *
+     * @ORM\Column(type="boolean", options={"default":0})
+     */
+    protected $is_personal;
+
+    /**
      * @var string|null
      *
      * @ORM\Column(type="text", nullable=true)
@@ -33,7 +40,8 @@ class SettingHistoryModel
      */
     public function __construct(SettingModel $setting = null)
     {
-        $this->created_at    = new \DateTime();
+        $this->created_at   = new \DateTime();
+        $this->is_personal  = false;
 
         if ($setting) {
             $this->setting = $setting;
@@ -76,6 +84,26 @@ class SettingHistoryModel
     public function setSetting(SettingModel $setting)
     {
         $this->setting = $setting;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isIsPersonal(): bool
+    {
+        return $this->is_personal;
+    }
+
+    /**
+     * @param bool $is_personal
+     *
+     * @return $this
+     */
+    public function setIsPersonal($is_personal)
+    {
+        $this->is_personal = $is_personal;
 
         return $this;
     }

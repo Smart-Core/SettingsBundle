@@ -9,8 +9,10 @@ use FOS\UserBundle\Model\UserInterface;
 use SmartCore\Bundle\SettingsBundle\Cache\DummyCacheProvider;
 use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use SmartCore\Bundle\SettingsBundle\Entity\SettingHistory;
+use SmartCore\Bundle\SettingsBundle\Entity\SettingPersonal;
 use SmartCore\Bundle\SettingsBundle\Model\SettingHistoryModel;
 use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
+use SmartCore\Bundle\SettingsBundle\Model\SettingPersonalModel;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -23,8 +25,11 @@ class SettingsManager
     /** @var \Doctrine\ORM\EntityManager $em */
     protected $em;
 
-    /** @var \Doctrine\ORM\EntityRepository */
+    /** @var \SmartCore\Bundle\SettingsBundle\Repository\SettingRepository */
     protected $settingsRepo;
+
+    /** @var \Doctrine\ORM\EntityRepository */
+    protected $settingsPersonalRepo;
 
     /** @var \Doctrine\ORM\EntityRepository */
     protected $settingsHistoryRepo;
@@ -60,8 +65,9 @@ class SettingsManager
     public function initRepo($force = false)
     {
         if (null === $this->settingsRepo or $force) {
-            $this->settingsRepo        = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:Setting');
-            $this->settingsHistoryRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:SettingHistory');
+            $this->settingsRepo         = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:Setting');
+            $this->settingsHistoryRepo  = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:SettingHistory');
+            $this->settingsPersonalRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:SettingPersonal');
         }
     }
 
@@ -80,9 +86,23 @@ class SettingsManager
     }
 
     /**
-     * @param int $id
+     * @param string  $bundle
+     * @param string  $name
+     * @param bool    $personal
      *
-     * @return SettingModel|null
+     * @return SettingModel|object|null
+     */
+    public function findBy($bundle, $name)
+    {
+        $this->initRepo();
+
+        return $this->settingsRepo->findOneBy(['bundle' => $bundle, 'name' => $name]);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return SettingModel|null|object
      */
     public function findById($id)
     {
@@ -91,6 +111,19 @@ class SettingsManager
         return $this->settingsRepo->find($id);
     }
 
+    /**
+     * @param SettingModel $setting
+     * @param int          $user
+     *
+     * @return SettingPersonalModel|object|null
+     */
+    public function findPersonal(SettingModel $setting, $user)
+    {
+        $this->initRepo();
+
+        return $this->settingsPersonalRepo->findOneBy(['setting' => $setting, 'user' => $user]);
+    }
+    
     /**
      * @param int $id
      *
@@ -118,10 +151,16 @@ class SettingsManager
 
         $bundle = $parts[0];
         $name   = $parts[1];
+        $userId = 0;
 
-        $cache_key = $this->getCacheKey($bundle, $name);
+        $token = $this->container->get('security.token_storage')->getToken();
+        if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
+            $userId = $token->getUser()->getId();
+        }
 
-        if (false == $setting = $this->cache->fetch($cache_key)) {
+        $cache_key = $this->getCacheKey($bundle, $name, $userId);
+
+        if (false == $value = $this->cache->fetch($cache_key)) {
             $this->initRepo();
 
             try {
@@ -134,7 +173,15 @@ class SettingsManager
                     'name'   => $name,
                 ]);
 
-                if ($tryCount == 1 and empty($setting)) {
+                if ($setting instanceof SettingModel) {
+                    $value = $setting->getValue();
+
+                    $settingPersonal = $this->settingsPersonalRepo->findOneBy(['setting' => $setting, 'user' => $userId]);
+
+                    if (!empty($settingPersonal)) {
+                        $value = $settingPersonal->getValue();
+                    }
+                } elseif ($tryCount == 1 and empty($setting)) {
                     $this->warmupDatabase();
                     $tryCount = 2;
                     goto trygetsetting;
@@ -150,21 +197,22 @@ class SettingsManager
                 return null;
             }
 
-            $this->cache->save($cache_key, $setting);
+            $this->cache->save($cache_key, $value);
         }
 
-        return $setting->getValue();
+        return $value;
     }
 
     /**
      * @param string $bundle
      * @param string $name
+     * @param int    $userId
      *
      * @return string
      */
-    protected function getCacheKey($bundle, $name)
+    protected function getCacheKey($bundle, $name, $userId = 0)
     {
-        return md5('smart_setting'.$bundle.$name);
+        return md5('smart_setting'.$bundle.$name.'_user_'.$userId);
     }
 
     /**
@@ -172,7 +220,97 @@ class SettingsManager
      *
      * @return bool
      */
-    public function updateEntity(SettingModel $setting)
+    public function updateEntity($entity)
+    {
+        if ($entity instanceof SettingModel) {
+            return $this->updateEntitySetting($entity);
+        } elseif ($entity instanceof SettingPersonalModel) {
+            return $this->updateEntitySettingPersonal($entity);
+        } else {
+            throw new \Exception('Не поддеживается класс '.get_class($entity).' для сохранения универсальным методом "updateEntity".');
+        }
+    }
+
+    /**
+     * @param SettingPersonalModel $settingPersonal
+     *
+     * @return bool
+     */
+    public function updateEntitySettingPersonal(SettingPersonalModel $settingPersonal)
+    {
+        $uow = $this->em->getUnitOfWork();
+
+        if ($settingPersonal->getUseDefault()) {
+            if (\Doctrine\ORM\UnitOfWork::STATE_MANAGED === $uow->getEntityState($settingPersonal)) {
+                $this->em->remove($settingPersonal);
+                $this->em->flush($settingPersonal);
+
+                $userId = 0;
+
+                $token = $this->container->get('security.token_storage')->getToken();
+                if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
+                    $userId = $token->getUser()->getId();
+                }
+
+                $this->cache->delete($this->getCacheKey($settingPersonal->getSetting()->getBundle(), $settingPersonal->getSetting()->getName(), $userId));
+
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        if (\Doctrine\ORM\UnitOfWork::STATE_MANAGED !== $uow->getEntityState($settingPersonal)) {
+            $token = $this->container->get('security.token_storage')->getToken();
+            if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
+                $settingPersonal->setUser($token->getUser());
+            }
+
+            $this->cache->delete($this->getCacheKey($settingPersonal->getSetting()->getBundle(), $settingPersonal->getSetting()->getName(), $token->getUser()->getId()));
+
+            $this->em->persist($settingPersonal);
+            $this->em->flush($settingPersonal);
+
+            return true;
+        }
+
+        $uow->computeChangeSets();
+
+        if ($uow->isEntityScheduled($settingPersonal)) {
+            $history = $this->factorySettingHistory($settingPersonal->getSetting());
+            $history
+                ->setValue($settingPersonal->getValue())
+                ->setIsPersonal(true)
+            ;
+
+            $userId = 0;
+
+            $token = $this->container->get('security.token_storage')->getToken();
+            if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
+                $history->setUser($token->getUser());
+                $userId = $token->getUser()->getId();
+            }
+
+            $this->em->persist($history);
+            $this->em->flush($history);
+
+            $this->em->persist($settingPersonal);
+            $this->em->flush($settingPersonal);
+
+            $this->cache->delete($this->getCacheKey($settingPersonal->getSetting()->getBundle(), $settingPersonal->getSetting()->getName(), $userId));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param SettingModel $setting
+     *
+     * @return bool
+     */
+    public function updateEntitySetting(SettingModel $setting)
     {
         $uow = $this->em->getUnitOfWork();
         $uow->computeChangeSets();
@@ -226,11 +364,19 @@ class SettingsManager
     }
 
     /**
-     * @return SettingHistory
+     * @return SettingHistoryModel
      */
     public function factorySettingHistory(SettingModel $setting)
     {
         return new SettingHistory($setting);
+    }
+
+    /**
+     * @return SettingPersonalModel
+     */
+    public function factorySettingPersonal(SettingModel $setting)
+    {
+        return new SettingPersonal($setting);
     }
 
     /**
@@ -329,18 +475,42 @@ class SettingsManager
 
     /**
      * @param SettingModel $setting
+     * @param string|null  $value
      *
      * @return string
      */
-    public function getSettingChoiceTitle(SettingModel $setting)
+    public function getSettingChoiceTitle(SettingModel $setting, $value)
     {
+        if (null === $value) {
+            $value = $setting->getValue();
+        }
+
         $settingConfig = $this->getSettingConfig($setting);
 
-        if (isset($settingConfig['choices']) and isset($settingConfig['choices'][$setting->getValue()])) {
-            return $settingConfig['choices'][$setting->getValue()];
+        if (isset($settingConfig['choices']) and isset($settingConfig['choices'][$value])) {
+            return $settingConfig['choices'][$value];
         }
 
         return 'N/A';
+    }
+
+    /**
+     * @param SettingModel $setting
+     *
+     * @return bool
+     */
+    public function hasSettingPersonal(SettingModel $setting)
+    {
+        $token = $this->container->get('security.token_storage')->getToken();
+        if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
+            $settingPersonal = $this->settingsPersonalRepo->findOneBy(['setting' => $setting, 'user' => $token->getUser()->getId()]);
+
+            if ($settingPersonal instanceof SettingPersonalModel) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

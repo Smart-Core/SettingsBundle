@@ -1,9 +1,13 @@
 Bundle: Пакет
 Cancel: Отменить
+Default value: Значение по умолчанию
 Description: Описание
+My value: Моё значение
 Name: Имя
 No: Нет
+Save: Сохранить
 Settings: Настройки
 Value: Значение
 Yes: Да
 Update: Обновить
+Use default: Использовать по умолчанию
