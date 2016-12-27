@@ -44,7 +44,7 @@ class SettingsExtension extends \Twig_Extension
      *
      * @return string
      */
-    public function getSetting($pattern, $array_flip = true)
+    public function getSetting($pattern, $array_flip = false)
     {
         $result = $this->settingsManager->get($pattern);
 
