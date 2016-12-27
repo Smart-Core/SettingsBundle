@@ -499,7 +499,7 @@ class SettingsManager
             $str = implode(', ', $values);
 
             if (empty($str)) {
-                $str = 'NULL';
+                $str = '[]';
             }
 
             return $str;

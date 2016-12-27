@@ -53,7 +53,7 @@ class SettingHistoryModel
      */
     public function getValue()
     {
-        return $this->value;
+        return $this->setting->getIsSerialized() ? unserialize($this->value) : $this->value;
     }
 
     /**
@@ -63,7 +63,11 @@ class SettingHistoryModel
      */
     public function setValue($value)
     {
-        $this->value = $value;
+        if (is_array($value)) {
+            $this->value = serialize($value);
+        } else {
+            $this->value = $value;
+        }
 
         return $this;
     }

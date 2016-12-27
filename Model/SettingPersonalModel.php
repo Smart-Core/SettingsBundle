@@ -45,7 +45,7 @@ abstract class SettingPersonalModel
 
         if ($setting) {
             $this->setting = $setting;
-            $this->value   = $setting->getValue();
+            $this->setValue($setting->getValue());
         }
     }
 

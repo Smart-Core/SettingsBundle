@@ -2,6 +2,7 @@
 
 namespace SmartCore\Bundle\SettingsBundle\Controller;
 
+use Genemu\Bundle\FormBundle\Form\JQuery\DataTransformer\ArrayToStringTransformer;
 use Smart\CoreBundle\Controller\Controller;
 use Smart\CoreBundle\Form\DataTransformer\BooleanToStringTransformer;
 use Smart\CoreBundle\Form\DataTransformer\HtmlTransformer;
@@ -134,10 +135,21 @@ class SettingsController extends Controller
                 ;
                 break;
             case ChoiceType::class:
-                ld($formOptions);
+                $formOptions['choices'] = array_flip($settingsManager->getSettingOption($setting, 'choices', []));
+                $formOptions['expanded'] = $settingsManager->getSettingOption($setting, 'expanded', false);
+                $formOptions['multiple'] = $settingsManager->getSettingOption($setting, 'multiple', false);
 
+                if ($formOptions['expanded']) {
+                    $builder
+                        ->add($builder
+                            ->create('value', $formType, $formOptions)
+                            ->addModelTransformer(new ArrayToStringTransformer())
+                        )
+                    ;
+                }
 
-                //$formOptions['choices'] = array_flip($settingsManager->getSettingOption($setting, 'choices', []));
+                $builder->add('value', $formType, $formOptions);
+                break;
             default:
                 $builder->add('value', $formType, $formOptions);
         }

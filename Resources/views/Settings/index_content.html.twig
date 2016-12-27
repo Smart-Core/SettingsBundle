@@ -53,7 +53,7 @@
                         <span class="label label-important label-danger">{{ 'No'|trans }}</span>
                     {% endif %}
                 {% elseif is_setting_choice(setting) %}
-                    <abbr title="{{ setting_personal_value }}">{{ get_setting_choice_title(setting, setting_personal_value) }}</abbr>
+                    <abbr title="{{ get_setting_value_as_string(setting_personal_value) }}">{{ get_setting_choice_title(setting, setting_personal_value) }}</abbr>
                 {% else %}
                     {{ setting_personal_value }}
                 {% endif %}

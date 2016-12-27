@@ -32,6 +32,7 @@ class SettingsExtension extends \Twig_Extension
             new \Twig_SimpleFunction('is_setting_choice',  [$this, 'isSettingChoice']),
             new \Twig_SimpleFunction('get_setting_choice_title',  [$this, 'getSettingChoiceTitle']),
             new \Twig_SimpleFunction('get_setting_option',  [$this, 'getSettingOption']),
+            new \Twig_SimpleFunction('get_setting_value_as_string',  [$this, 'getSettingValueAsString']),
             new \Twig_SimpleFunction('is_settings_show_bundle_column',  [$this, 'isSettingsShowBundleColumn']),
             new \Twig_SimpleFunction('has_setting_personal',  [$this, 'hasSettingPersonal']),
         ];
@@ -132,6 +133,20 @@ class SettingsExtension extends \Twig_Extension
     public function hasSettingPersonal(SettingModel $setting)
     {
         return $this->settingsManager->hasSettingPersonal($setting);
+    }
+
+    /**
+     * @param array|string $value
+     *
+     * @return string
+     */
+    public function getSettingValueAsString($value)
+    {
+        if (is_array($value)) {
+            $value = implode(', ', $value);
+        }
+
+        return $value;
     }
 
     /**
