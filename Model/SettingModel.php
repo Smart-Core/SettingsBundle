@@ -168,6 +168,20 @@ abstract class SettingModel
     }
 
     /**
+     * @return string
+     */
+    public function getValueAsString()
+    {
+        $str = $this->is_serialized ? unserialize($this->value) : $this->value;
+
+        if (is_array($str)) {
+            $str = implode(', ', $str);
+        }
+
+        return $str;
+    }
+
+    /**
      * @return boolean
      */
     public function getIsSerialized()

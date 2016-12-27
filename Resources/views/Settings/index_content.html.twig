@@ -67,7 +67,7 @@
                         <span class="label label-important label-danger">{{ 'No'|trans }}</span>
                     {% endif %}
                 {% elseif is_setting_choice(setting) %}
-                    <abbr title="{{ setting.value }}">{{ get_setting_choice_title(setting) }}</abbr>
+                    <abbr title="{{ setting.valueAsString }}">{{ get_setting_choice_title(setting) }}</abbr>
                 {% else %}
                     {{ setting.value }}
                 {% endif %}

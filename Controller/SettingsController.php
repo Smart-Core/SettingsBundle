@@ -134,7 +134,10 @@ class SettingsController extends Controller
                 ;
                 break;
             case ChoiceType::class:
-                $formOptions['choices'] = array_flip($settingsManager->getSettingOption($setting, 'choices', []));
+                ld($formOptions);
+
+
+                //$formOptions['choices'] = array_flip($settingsManager->getSettingOption($setting, 'choices', []));
             default:
                 $builder->add('value', $formType, $formOptions);
         }

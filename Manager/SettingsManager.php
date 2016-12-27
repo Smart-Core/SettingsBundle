@@ -25,7 +25,7 @@ class SettingsManager
     /** @var \Doctrine\ORM\EntityManager $em */
     protected $em;
 
-    /** @var \SmartCore\Bundle\SettingsBundle\Repository\SettingRepository */
+    /** @var \Doctrine\ORM\EntityRepository */
     protected $settingsRepo;
 
     /** @var \Doctrine\ORM\EntityRepository */
@@ -486,6 +486,24 @@ class SettingsManager
         }
 
         $settingConfig = $this->getSettingConfig($setting);
+
+        if (is_array($value)) {
+            $values = [];
+            foreach ($value as $var) {
+                if (isset($settingConfig['choices']) and isset($settingConfig['choices'][$var])) {
+
+                }
+                $values[] = $settingConfig['choices'][$var];
+            }
+
+            $str = implode(', ', $values);
+
+            if (empty($str)) {
+                $str = 'NULL';
+            }
+
+            return $str;
+        }
 
         if (isset($settingConfig['choices']) and isset($settingConfig['choices'][$value])) {
             return $settingConfig['choices'][$value];
