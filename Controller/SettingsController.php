@@ -2,8 +2,8 @@
 
 namespace SmartCore\Bundle\SettingsBundle\Controller;
 
-use Genemu\Bundle\FormBundle\Form\JQuery\DataTransformer\ArrayToStringTransformer;
 use Smart\CoreBundle\Controller\Controller;
+use Smart\CoreBundle\Form\DataTransformer\ArrayToStringTransformer;
 use Smart\CoreBundle\Form\DataTransformer\BooleanToStringTransformer;
 use Smart\CoreBundle\Form\DataTransformer\HtmlTransformer;
 use SmartCore\Bundle\SettingsBundle\Manager\SettingsManager;
