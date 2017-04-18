@@ -199,13 +199,15 @@ class SettingsController extends Controller
      * @param int     $id
      *
      * @return \Symfony\Component\HttpFoundation\Response
+     *
+     * @todo постраничность
      */
-    public function historyAction($id)
+    public function historyAction($bundle, $name)
     {
         /** @var SettingsManager $settingsManager */
         $settingsManager = $this->get('settings');
 
-        $setting = $settingsManager->findById($id);
+        $setting = $settingsManager->findBy($bundle, $name);
 
         if (empty($setting)) {
             throw $this->createNotFoundException();

@@ -21,11 +21,9 @@ smart_core_setting_edit_personal:
         personal: true
 
 smart_core_setting_history:
-    path: /{id}/history/
+    path: /{bundle}:{name}/history/
     defaults:
         _controller: SmartSettingsBundle:Settings:history
-    requirements:
-        id: \d+
 
 smart_core_setting_history_rollback:
     path: /rollback/{id}/

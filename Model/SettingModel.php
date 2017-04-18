@@ -53,6 +53,7 @@ abstract class SettingModel
      * @var SettingHistoryModel[]
      *
      * @ORM\OneToMany(targetEntity="SettingHistory", mappedBy="setting", fetch="EXTRA_LAZY")
+     * @ORM\OrderBy({"id" = "DESC"})
      */
     protected $history;
 

@@ -2,7 +2,7 @@
 <div class="box box-success">
     <div class="box-header with-border">
 
-        <h3>История изменений настройки: &laquo;<a href="{{ path('smart_core_setting_edit', {'id': setting.id}) }}">{{ setting }}</a>&raquo;</h3>
+        <h3>История изменений настройки: &laquo;<a href="{{ path('smart_core_setting_edit', {'bundle': setting.bundle, 'name': setting.name}) }}">{{ setting }}</a>&raquo;</h3>
 
         <a href="{{ path('smart_core_settings') }}">
             <i class="fa fa-arrow-circle-o-left"></i>
@@ -30,7 +30,15 @@
                                 <span class="label label-important label-danger">{{ 'No'|trans }}</span>
                             {% endif %}
                         {% else %}
-                            {{ item.value }}
+                            {% if item.value is iterable %}
+                                <ul>
+                                {% for val in item.value %}
+                                    <li>{{ val }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% else %}
+                                {{ item.value }}
+                            {% endif %}
                         {% endif %}
                     </td>
                     <td>

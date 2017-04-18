@@ -2,7 +2,7 @@
 <div class="box box-success">
     <div class="box-header with-border">
         {#<div >#}
-            <a href="{{ path('smart_core_setting_history', {'id': setting.id}) }}" class="btn btn-default" style="float: right; margin-top: 2px;">История измнений</a>
+            <a href="{{ path('smart_core_setting_history', {'bundle': setting.bundle, 'name': setting.name}) }}" class="btn btn-default" style="float: right; margin-top: 2px;">История измнений</a>
         {#</div>#}
 
         {% if personal %}
