@@ -196,13 +196,14 @@ class SettingsController extends Controller
 
     /**
      * @param Request $request
-     * @param int     $id
+     * @param string  $bundle
+     * @param string  $name
      *
      * @return \Symfony\Component\HttpFoundation\Response
      *
      * @todo постраничность
      */
-    public function historyAction($bundle, $name)
+    public function historyAction(Request $request, $bundle, $name)
     {
         /** @var SettingsManager $settingsManager */
         $settingsManager = $this->get('settings');
