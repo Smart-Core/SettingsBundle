@@ -18,7 +18,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *      }
  * )
  *
- * @UniqueEntity(fields={"bundle", "name"}, message="В каждом бандле должены быть уникальные ключи")
+ * @UniqueEntity(fields={"bundle", "name"}, message="Each bandle must have unique keys")
  */
 class Setting extends SettingModel
 {
