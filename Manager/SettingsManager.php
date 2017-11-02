@@ -65,9 +65,9 @@ class SettingsManager
     public function initRepo($force = false)
     {
         if (null === $this->settingsRepo or $force) {
-            $this->settingsRepo         = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:Setting');
-            $this->settingsHistoryRepo  = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:SettingHistory');
-            $this->settingsPersonalRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository('SmartSettingsBundle:SettingPersonal');
+            $this->settingsRepo         = $this->container->get('doctrine.orm.entity_manager')->getRepository(Setting::class);
+            $this->settingsHistoryRepo  = $this->container->get('doctrine.orm.entity_manager')->getRepository(SettingHistory::class);
+            $this->settingsPersonalRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository(SettingPersonal::class);
         }
     }
 
