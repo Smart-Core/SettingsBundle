@@ -43,18 +43,12 @@ class SettingsManager
     /**
      * @param ContainerInterface $container
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container, CacheProvider $cache)
     {
+        $this->cache     = $cache;
         $this->container = $container;
         $this->em        = $container->get('doctrine.orm.entity_manager');
         $this->settingsConfigRuntimeCache = [];
-        $cache_provider  = $container->getParameter('smart_core.settings.doctrine_cache_provider');
-
-        if (!empty($cache_provider) and $container->has('doctrine_cache.providers.'.$cache_provider)) {
-            $this->cache = $container->get('doctrine_cache.providers.'.$cache_provider);
-        } else {
-            $this->cache = new DummyCacheProvider();
-        }
     }
 
     /**
@@ -65,9 +59,9 @@ class SettingsManager
     public function initRepo($force = false)
     {
         if (null === $this->settingsRepo or $force) {
-            $this->settingsRepo         = $this->container->get('doctrine.orm.entity_manager')->getRepository(Setting::class);
-            $this->settingsHistoryRepo  = $this->container->get('doctrine.orm.entity_manager')->getRepository(SettingHistory::class);
-            $this->settingsPersonalRepo = $this->container->get('doctrine.orm.entity_manager')->getRepository(SettingPersonal::class);
+            $this->settingsRepo         = $this->em->getRepository(Setting::class);
+            $this->settingsHistoryRepo  = $this->em->getRepository(SettingHistory::class);
+            $this->settingsPersonalRepo = $this->em->getRepository(SettingPersonal::class);
         }
     }
 
@@ -520,6 +514,7 @@ class SettingsManager
     public function hasSettingPersonal(SettingModel $setting)
     {
         $token = $this->container->get('security.token_storage')->getToken();
+
         if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
             $settingPersonal = $this->settingsPersonalRepo->findOneBy(['setting' => $setting, 'user' => $token->getUser()->getId()]);
 
