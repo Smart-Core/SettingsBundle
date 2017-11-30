@@ -31,6 +31,9 @@ class SmartSettingsExtension extends Extension
         $container->setParameter('smart_core.settings.doctrine_cache_provider', $config['doctrine_cache_provider']);
         $container->setParameter('smart_core.settings.show_bundle_column', $config['show_bundle_column']);
 
-        $container->setAlias('settings', new Alias($config['setting_manager']));
+        $alias = new Alias($config['setting_manager']);
+        $alias->setPublic(true);
+
+        $container->setAlias('settings', $alias);
     }
 }
