@@ -21,7 +21,7 @@
             <tbody>
             {% for item in setting.history %}
                 <tr>
-                    <td>{{ item.createdAt|localizeddate('medium') }}</td>
+                    <td>{{ item.createdAt|format_datetime }}</td>
                     <td>
                         {% if is_setting_bool(setting) %}
                             {% if item.value %}
