@@ -50,6 +50,13 @@ abstract class SettingModel
     protected $is_serialized;
 
     /**
+     * @var bool
+     *
+     * @ORM\Column(type="boolean", nullable=false, options={"default":0})
+     */
+    protected $is_hidden;
+
+    /**
      * @var SettingHistoryModel[]
      *
      * @ORM\OneToMany(targetEntity="SettingHistory", mappedBy="setting", fetch="EXTRA_LAZY")
@@ -58,13 +65,14 @@ abstract class SettingModel
     protected $history;
 
     /**
-     * Constructor.
+     * SettingModel constructor.
      */
     public function __construct()
     {
         $this->category      = 'default';
         $this->created_at    = new \DateTime();
         $this->is_serialized = false;
+        $this->is_hidden     = false;
     }
 
     /**
@@ -198,6 +206,26 @@ abstract class SettingModel
     public function setIsSerialized($is_serialized)
     {
         $this->is_serialized = $is_serialized;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isHidden(): bool
+    {
+        return $this->is_hidden;
+    }
+
+    /**
+     * @param bool $is_hidden
+     *
+     * @return $this
+     */
+    public function setIsHidden($is_hidden)
+    {
+        $this->is_hidden = $is_hidden;
 
         return $this;
     }

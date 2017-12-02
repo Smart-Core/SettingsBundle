@@ -4,6 +4,7 @@ namespace SmartCore\Bundle\SettingsBundle\Manager;
 
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\DBAL\Exception\TableNotFoundException;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Tools\SchemaValidator;
 use FOS\UserBundle\Model\UserInterface;
 use SmartCore\Bundle\SettingsBundle\Cache\DummyCacheProvider;
@@ -131,6 +132,16 @@ class SettingsManager
     }
 
     /**
+     * @return EntityRepository
+     */
+    public function getSettingsRepo(): EntityRepository
+    {
+        $this->initRepo();
+
+        return $this->settingsRepo;
+    }
+    
+    /**
      * @param string $pattern
      *
      * @return mixed
@@ -162,10 +173,7 @@ class SettingsManager
 
                 trygetsetting:
 
-                $setting = $this->settingsRepo->findOneBy([
-                    'bundle' => $bundle,
-                    'name'   => $name,
-                ]);
+                $setting = $this->findBy($bundle, $name);
 
                 if ($setting instanceof SettingModel) {
                     $value = $setting->getValue();
@@ -348,27 +356,44 @@ class SettingsManager
     }
 
     /**
-     * @param string       $bundle
-     * @param string       $name
-     * @param string|array $value
+     * @param string     $bundle
+     * @param string     $name
+     * @param string|int $value
+     * @param bool       $is_hidden
+     *
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function createSetting($bundle, $name, $value)
+    public function createSetting(string $bundle, string $name, $value, bool $is_hidden = false): void
     {
-        $this->persistSetting(new Setting(), $bundle, $name, $value);
+        $setting = $this->findBy($bundle, $name);
+
+        if ($setting instanceof SettingModel) {
+            if ($setting->isHidden() != $is_hidden) {
+                $setting->setIsHidden($is_hidden);
+
+                $this->em->flush($setting);
+            }
+        } else {
+            $this->persistSetting(new Setting(), $bundle, $name, $value, $is_hidden);
+        }
     }
 
     /**
-     * @return SettingHistoryModel
+     * @param SettingModel $setting
+     *
+     * @return SettingHistory
      */
-    public function factorySettingHistory(SettingModel $setting)
+    public function factorySettingHistory(SettingModel $setting): SettingHistory
     {
         return new SettingHistory($setting);
     }
 
     /**
-     * @return SettingPersonalModel
+     * @param SettingModel $setting
+     *
+     * @return SettingPersonal
      */
-    public function factorySettingPersonal(SettingModel $setting)
+    public function factorySettingPersonal(SettingModel $setting): SettingPersonal
     {
         return new SettingPersonal($setting);
     }
@@ -377,14 +402,16 @@ class SettingsManager
      * @param SettingModel $setting
      * @param string       $bundle
      * @param string       $name
-     * @param string|array $value
+     * @param string|int   $value
+     * @param bool         $is_hidden
      */
-    protected function persistSetting(SettingModel $setting, $bundle, $name, $value)
+    protected function persistSetting(SettingModel $setting, string $bundle, string $name, $value, bool $is_hidden = false)
     {
         $setting
             ->setBundle($bundle)
             ->setName($name)
             ->setValue($value)
+            ->setIsHidden($is_hidden)
         ;
 
         $errors = $this->container->get('validator')->validate($setting);
@@ -552,15 +579,21 @@ class SettingsManager
                             continue;
                         }
 
+                        $is_hidden = false;
                         if (is_array($val)) {
+                            if (isset($val['hidden'])) {
+                                $is_hidden = (bool) $val['hidden'];
+                            }
+
                             if(isset($val['value'])) {
                                 $val = $val['value'];
+
                             } else {
                                 throw new \Exception("Missing value for key '$name' in Bundle '$bundleName'.");
                             }
                         }
 
-                        $this->createSetting($bundle->getContainerExtension()->getAlias(), $name, $val);
+                        $this->createSetting($bundle->getContainerExtension()->getAlias(), $name, $val, $is_hidden);
                     }
 
                     $this->em->flush();

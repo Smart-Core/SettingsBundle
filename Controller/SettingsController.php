@@ -24,7 +24,7 @@ class SettingsController extends Controller
      */
     public function indexAction($personal = false)
     {
-        $settings = $this->get('settings')->all();
+        $settings = $this->get('settings')->getSettingsRepo()->findBy(['is_hidden' => false], ['bundle' => 'ASC', 'name' => 'ASC']);
 
         if ($personal) {
             /** @var SettingModel $setting */
@@ -60,7 +60,7 @@ class SettingsController extends Controller
 
         $setting = $settingsManager->findBy($bundle, $name);
 
-        if (empty($setting)) {
+        if (empty($setting) or $setting->isHidden()) {
             throw $this->createNotFoundException();
         }
 
@@ -210,7 +210,7 @@ class SettingsController extends Controller
 
         $setting = $settingsManager->findBy($bundle, $name);
 
-        if (empty($setting)) {
+        if (empty($setting) or $setting->isHidden()) {
             throw $this->createNotFoundException();
         }
 

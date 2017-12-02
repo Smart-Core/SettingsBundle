@@ -4,6 +4,7 @@ option1: value 1
 # Full specs
 option2:
     type: TextType # CheckboxType, ChoiceType, CheckboxType etc...
+    hidden: true # Скрывать в админке
     value: |
         Многострочный
         Текст.
