@@ -55,7 +55,6 @@ class SettingsController extends Controller
      */
     public function editAction(Request $request, $bundle, $name, $personal = false)
     {
-        /** @var SettingsManager $settingsManager */
         $settingsManager = $this->get('settings');
 
         $setting = $settingsManager->findBy($bundle, $name);
@@ -65,7 +64,6 @@ class SettingsController extends Controller
         }
 
         if ($personal) {
-            /** @var SettingPersonalModel $settingPersonal */
             $settingPersonal = $settingsManager->findPersonal($setting, $this->getUser());
 
             if (empty($settingPersonal)) {

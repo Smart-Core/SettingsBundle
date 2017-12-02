@@ -110,9 +110,9 @@ class SettingsManager
      * @param SettingModel $setting
      * @param int          $user
      *
-     * @return SettingPersonalModel|object|null
+     * @return SettingPersonalModel|null
      */
-    public function findPersonal(SettingModel $setting, $user)
+    public function findPersonal(SettingModel $setting, $user): ?SettingPersonalModel
     {
         $this->initRepo();
 

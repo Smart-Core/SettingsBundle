@@ -193,7 +193,15 @@ abstract class SettingModel
     /**
      * @return boolean
      */
-    public function getIsSerialized()
+    public function getIsSerialized(): bool
+    {
+        return $this->is_serialized;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isSerialized(): bool
     {
         return $this->is_serialized;
     }
