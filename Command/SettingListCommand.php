@@ -45,5 +45,7 @@ class SettingListCommand extends ContainerAwareCommand
         }
 
         $table->render();
+
+        $output->writeln('Total settings: '.count($settings));
     }
 }
