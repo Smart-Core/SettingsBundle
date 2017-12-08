@@ -1,6 +1,7 @@
 services:
     smart_core.settings.manager:
         class: SmartCore\Bundle\SettingsBundle\Manager\SettingsManager
+        public: true
         arguments: [ '@service_container', '@doctrine_cache.providers.doctrine.orm.default_metadata_cache' ]
 
 #    smart_core.settings.table_prefix_subscriber:
