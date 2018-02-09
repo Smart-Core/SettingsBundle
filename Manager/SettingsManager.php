@@ -383,7 +383,7 @@ class SettingsManager
      *
      * @return SettingHistory
      */
-    public function factorySettingHistory(SettingModel $setting): SettingHistory
+    public function factorySettingHistory(SettingModel $setting): SettingHistoryModel
     {
         return new SettingHistory($setting);
     }
@@ -393,7 +393,7 @@ class SettingsManager
      *
      * @return SettingPersonal
      */
-    public function factorySettingPersonal(SettingModel $setting): SettingPersonal
+    public function factorySettingPersonal(SettingModel $setting): SettingPersonalModel
     {
         return new SettingPersonal($setting);
     }
