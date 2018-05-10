@@ -2,6 +2,7 @@
 
 namespace SmartCore\Bundle\SettingsBundle\Manager;
 
+use function Couchbase\defaultDecoder;
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use Doctrine\ORM\EntityRepository;
@@ -156,14 +157,8 @@ class SettingsManager
 
         $bundle = $parts[0];
         $name   = $parts[1];
-        $userId = 0;
 
-        $token = $this->container->get('security.token_storage')->getToken();
-        if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
-            $userId = $token->getUser()->getId();
-        }
-
-        $cache_key = $this->getCacheKey($bundle, $name, $userId);
+        $cache_key = $this->getCacheKey($bundle, $name, $this->getUserId());
 
         if (false == $value = $this->cache->fetch($cache_key)) {
             $this->initRepo();
@@ -178,7 +173,7 @@ class SettingsManager
                 if ($setting instanceof SettingModel) {
                     $value = $setting->getValue();
 
-                    $settingPersonal = $this->settingsPersonalRepo->findOneBy(['setting' => $setting, 'user' => $userId]);
+                    $settingPersonal = $this->settingsPersonalRepo->findOneBy(['setting' => $setting, 'user' => $this->getUserId()]);
 
                     if (!empty($settingPersonal)) {
                         $value = $settingPersonal->getValue();
@@ -247,14 +242,7 @@ class SettingsManager
                 $this->em->remove($settingPersonal);
                 $this->em->flush($settingPersonal);
 
-                $userId = 0;
-
-                $token = $this->container->get('security.token_storage')->getToken();
-                if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
-                    $userId = $token->getUser()->getId();
-                }
-
-                $this->cache->delete($this->getCacheKey($settingPersonal->getSetting()->getBundle(), $settingPersonal->getSetting()->getName(), $userId));
+                $this->cache->delete($this->getCacheKey($settingPersonal->getSetting()->getBundle(), $settingPersonal->getSetting()->getName(), $this->getUserId()));
 
                 return true;
             } else {
@@ -268,7 +256,7 @@ class SettingsManager
                 $settingPersonal->setUser($token->getUser());
             }
 
-            $this->cache->delete($this->getCacheKey($settingPersonal->getSetting()->getBundle(), $settingPersonal->getSetting()->getName(), $token->getUser()->getId()));
+            $this->cache->delete($this->getCacheKey($settingPersonal->getSetting()->getBundle(), $settingPersonal->getSetting()->getName(), $this->getUserId()));
 
             $this->em->persist($settingPersonal);
             $this->em->flush($settingPersonal);
@@ -285,12 +273,9 @@ class SettingsManager
                 ->setIsPersonal(true)
             ;
 
-            $userId = 0;
-
             $token = $this->container->get('security.token_storage')->getToken();
             if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
                 $history->setUser($token->getUser());
-                $userId = $token->getUser()->getId();
             }
 
             $this->em->persist($history);
@@ -299,7 +284,7 @@ class SettingsManager
             $this->em->persist($settingPersonal);
             $this->em->flush($settingPersonal);
 
-            $this->cache->delete($this->getCacheKey($settingPersonal->getSetting()->getBundle(), $settingPersonal->getSetting()->getName(), $userId));
+            $this->cache->delete($this->getCacheKey($settingPersonal->getSetting()->getBundle(), $settingPersonal->getSetting()->getName(), $this->getUserId()));
 
             return true;
         }
@@ -332,7 +317,9 @@ class SettingsManager
             $this->em->persist($setting);
             $this->em->flush($setting);
 
-            $this->cache->delete($this->getCacheKey($setting->getBundle(), $setting->getName()));
+            $cache_key = $this->getCacheKey($setting->getBundle(), $setting->getName(), $this->getUserId());
+
+            $this->cache->delete($cache_key);
 
             return true;
         }
@@ -553,6 +540,21 @@ class SettingsManager
         return false;
     }
 
+    /**
+     * @return int
+     */
+    protected function getUserId(): int
+    {
+        $userId = 0;
+
+        $token = $this->container->get('security.token_storage')->getToken();
+        if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
+            $userId = $token->getUser()->getId();
+        }
+
+        return $userId;
+    }
+    
     /**
      * @throws \Exception
      */
