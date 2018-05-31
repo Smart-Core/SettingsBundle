@@ -456,6 +456,31 @@ class SettingsManager
     }
 
     /**
+     * @return array
+     * @throws \ReflectionException
+     */
+    public function getSettingsConfigAllYaml(): array
+    {
+        $settingsConfig = [];
+
+        foreach ($this->container->getParameter('kernel.bundles') as $bundleName => $bundleClass) {
+            /** @var \Symfony\Component\HttpKernel\Bundle\Bundle $bundle */
+            $bundle = new $bundleClass();
+
+            $reflector = new \ReflectionClass($bundleClass);
+            $settingsConfigFile = dirname($reflector->getFileName()).'/Resources/config/settings.yml';
+
+            if (file_exists($settingsConfigFile)) {
+                $cfg = Yaml::parse(file_get_contents($settingsConfigFile));
+
+                $settingsConfig[$bundle->getContainerExtension()->getAlias()] = $cfg;
+            }
+        }
+
+        return $settingsConfig;
+    }
+    
+    /**
      * @return bool
      */
     public function isSettingsShowBundleColumn()
