@@ -27,8 +27,6 @@ class SettingsController extends Controller
         $settings = $this->get('settings')->getSettingsRepo()->findBy(['is_hidden' => false], ['bundle' => 'ASC', 'name' => 'ASC']);
         $settingsArrayAll = $this->get('settings')->getSettingsConfigAllYaml();
 
-//        dump($settings);
-
         /** @var SettingModel $setting */
         foreach ($settings as $key => $setting) {
             if (!isset($settingsArrayAll[$setting->getBundle()][$setting->getName()])) {
@@ -47,8 +45,6 @@ class SettingsController extends Controller
                 }
             }
         }
-
-//        dump($settings2);
 
         return $this->render('@SmartSettings/Settings/index.html.twig', [
             'personal' => $personal,
