@@ -4,8 +4,10 @@ namespace SmartCore\Bundle\SettingsBundle\Twig;
 
 use SmartCore\Bundle\SettingsBundle\Manager\SettingsManager;
 use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
 
-class SettingsExtension extends \Twig_Extension
+class SettingsExtension extends AbstractExtension
 {
     /** @var SettingsManager */
     protected $settingsManager;
@@ -26,15 +28,15 @@ class SettingsExtension extends \Twig_Extension
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('setting',  [$this, 'getSetting']),
-            new \Twig_SimpleFunction('is_setting',  [$this, 'isSettingEquals']),
-            new \Twig_SimpleFunction('is_setting_bool',  [$this, 'isSettingBool']),
-            new \Twig_SimpleFunction('is_setting_choice',  [$this, 'isSettingChoice']),
-            new \Twig_SimpleFunction('get_setting_choice_title',  [$this, 'getSettingChoiceTitle']),
-            new \Twig_SimpleFunction('get_setting_option',  [$this, 'getSettingOption']),
-            new \Twig_SimpleFunction('get_setting_value_as_string',  [$this, 'getSettingValueAsString']),
-            new \Twig_SimpleFunction('is_settings_show_bundle_column',  [$this, 'isSettingsShowBundleColumn']),
-            new \Twig_SimpleFunction('has_setting_personal',  [$this, 'hasSettingPersonal']),
+            new TwigFunction('setting',  [$this, 'getSetting']),
+            new TwigFunction('is_setting',  [$this, 'isSettingEquals']),
+            new TwigFunction('is_setting_bool',  [$this, 'isSettingBool']),
+            new TwigFunction('is_setting_choice',  [$this, 'isSettingChoice']),
+            new TwigFunction('get_setting_choice_title',  [$this, 'getSettingChoiceTitle']),
+            new TwigFunction('get_setting_option',  [$this, 'getSettingOption']),
+            new TwigFunction('get_setting_value_as_string',  [$this, 'getSettingValueAsString']),
+            new TwigFunction('is_settings_show_bundle_column',  [$this, 'isSettingsShowBundleColumn']),
+            new TwigFunction('has_setting_personal',  [$this, 'hasSettingPersonal']),
         ];
     }
 
