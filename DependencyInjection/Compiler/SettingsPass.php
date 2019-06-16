@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartCore\Bundle\SettingsBundle\DependencyInjection\Compiler;
 
-use Doctrine\ORM\Tools\SchemaValidator;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\Yaml\Yaml;
 
 class SettingsPass implements CompilerPassInterface
 {

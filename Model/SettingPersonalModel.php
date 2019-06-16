@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartCore\Bundle\SettingsBundle\Model;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -10,7 +12,6 @@ abstract class SettingPersonalModel
 {
     use ColumnTrait\Id;
     use ColumnTrait\CreatedAt;
-    //use ColumnTrait\User;
     use ColumnTrait\UpdatedAt;
 
     /**
@@ -19,6 +20,13 @@ abstract class SettingPersonalModel
      * @ORM\Column(type="text", nullable=true)
      */
     protected $value;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(type="string", length=32, nullable=false)
+     */
+    protected $userId;
 
     /**
      * @var SettingModel
@@ -36,7 +44,9 @@ abstract class SettingPersonalModel
     protected $use_default = true;
 
     /**
-     * Constructor.
+     * SettingPersonalModel constructor.
+     *
+     * @param SettingModel|null $setting
      */
     public function __construct(SettingModel $setting = null)
     {
@@ -125,6 +135,26 @@ abstract class SettingPersonalModel
     public function setUseDefault($use_default)
     {
         $this->use_default = $use_default;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserId(): string
+    {
+        return $this->userId;
+    }
+
+    /**
+     * @param string $userId
+     *
+     * @return $this
+     */
+    public function setUserId($userId): self
+    {
+        $this->userId = $userId;
 
         return $this;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartCore\Bundle\SettingsBundle\Model;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -9,7 +11,6 @@ class SettingHistoryModel
 {
     use ColumnTrait\Id;
     use ColumnTrait\CreatedAt;
-    //use ColumnTrait\User;
 
     /**
      * @var bool
@@ -17,6 +18,13 @@ class SettingHistoryModel
      * @ORM\Column(type="boolean", options={"default":0})
      */
     protected $is_personal;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(type="string", length=32, nullable=false)
+     */
+    protected $userId;
 
     /**
      * @var string|null
@@ -108,6 +116,26 @@ class SettingHistoryModel
     public function setIsPersonal($is_personal)
     {
         $this->is_personal = $is_personal;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserId(): string
+    {
+        return $this->userId;
+    }
+
+    /**
+     * @param string $userId
+     *
+     * @return $this
+     */
+    public function setUserId($userId): self
+    {
+        $this->userId = $userId;
 
         return $this;
     }

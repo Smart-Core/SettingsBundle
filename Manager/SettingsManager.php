@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartCore\Bundle\SettingsBundle\Manager;
 
 use Doctrine\Common\Cache\CacheProvider;
@@ -549,7 +551,7 @@ class SettingsManager
      *
      * @return bool
      */
-    public function hasSettingPersonal(SettingModel $setting)
+    public function hasSettingPersonal(SettingModel $setting): bool
     {
         $token = $this->container->get('security.token_storage')->getToken();
 

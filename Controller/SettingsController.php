@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartCore\Bundle\SettingsBundle\Controller;
 
 use Smart\CoreBundle\Controller\Controller;

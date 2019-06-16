@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartCore\Bundle\SettingsBundle\Command;
 
 use Symfony\Component\Console\Input\InputInterface;

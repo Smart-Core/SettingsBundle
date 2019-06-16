@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartCore\Bundle\SettingsBundle\Twig;
 
 use SmartCore\Bundle\SettingsBundle\Manager\SettingsManager;
@@ -25,7 +27,7 @@ class SettingsExtension extends AbstractExtension
      *
      * @return array An array of functions
      */
-    public function getFunctions()
+    public function getFunctions(): array
     {
         return [
             new TwigFunction('setting',  [$this, 'getSetting']),
@@ -63,7 +65,7 @@ class SettingsExtension extends AbstractExtension
      *
      * @return bool
      */
-    public function isSettingEquals($pattern, $value)
+    public function isSettingEquals($pattern, $value): bool
     {
         if ($this->settingsManager->get($pattern) == $value) {
             return true;
@@ -77,7 +79,7 @@ class SettingsExtension extends AbstractExtension
      *
      * @return bool
      */
-    public function isSettingBool(SettingModel $setting)
+    public function isSettingBool(SettingModel $setting): bool
     {
         $settingConfig = $this->settingsManager->getSettingConfig($setting);
 
@@ -93,7 +95,7 @@ class SettingsExtension extends AbstractExtension
      *
      * @return bool
      */
-    public function isSettingChoice(SettingModel $setting)
+    public function isSettingChoice(SettingModel $setting): bool
     {
         $settingConfig = $this->settingsManager->getSettingConfig($setting);
 
@@ -118,7 +120,7 @@ class SettingsExtension extends AbstractExtension
     /**
      * @return bool
      */
-    public function isSettingsShowBundleColumn()
+    public function isSettingsShowBundleColumn(): bool
     {
         return $this->settingsManager->isSettingsShowBundleColumn();
     }
@@ -129,7 +131,7 @@ class SettingsExtension extends AbstractExtension
      *
      * @return string
      */
-    public function getSettingChoiceTitle(SettingModel $setting, $value = null)
+    public function getSettingChoiceTitle(SettingModel $setting, $value = null): string
     {
         return $this->settingsManager->getSettingChoiceTitle($setting, $value);
     }
@@ -139,7 +141,7 @@ class SettingsExtension extends AbstractExtension
      *
      * @return bool
      */
-    public function hasSettingPersonal(SettingModel $setting)
+    public function hasSettingPersonal(SettingModel $setting): bool
     {
         return $this->settingsManager->hasSettingPersonal($setting);
     }
@@ -149,7 +151,7 @@ class SettingsExtension extends AbstractExtension
      *
      * @return string
      */
-    public function getSettingValueAsString($value)
+    public function getSettingValueAsString($value): string
     {
         if (is_array($value)) {
             $value = implode(', ', $value);
@@ -161,7 +163,7 @@ class SettingsExtension extends AbstractExtension
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return 'smart_core_settings_twig_extension';
     }

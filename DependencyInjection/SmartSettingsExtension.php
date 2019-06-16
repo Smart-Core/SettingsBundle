@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartCore\Bundle\SettingsBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Alias;
