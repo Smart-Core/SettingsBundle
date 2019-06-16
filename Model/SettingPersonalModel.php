@@ -44,9 +44,7 @@ abstract class SettingPersonalModel
     protected $use_default = true;
 
     /**
-     * SettingPersonalModel constructor.
-     *
-     * @param SettingModel|null $setting
+     * Constructor.
      */
     public function __construct(SettingModel $setting = null)
     {

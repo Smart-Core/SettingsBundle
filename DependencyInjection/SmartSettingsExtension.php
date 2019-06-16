@@ -1,12 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace SmartCore\Bundle\SettingsBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
 
@@ -28,14 +28,31 @@ class SmartSettingsExtension extends Extension
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
 
-        //$container->setParameter('smart_core.settings.table_prefix', $config['table_prefix']);
         $container->setParameter('smart_core.settings.setting_manager', $config['setting_manager']);
-        $container->setParameter('smart_core.settings.doctrine_cache_provider', $config['doctrine_cache_provider']);
         $container->setParameter('smart_core.settings.show_bundle_column', $config['show_bundle_column']);
+
+        $this->createCacheService($container, $config['cache_provider']);
 
         $alias = new Alias($config['setting_manager']);
         $alias->setPublic(true);
 
         $container->setAlias('settings', $alias);
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     * @param string           $cache_proviver_id
+     */
+    protected function createCacheService(ContainerBuilder $container, string $cache_proviver_id): void
+    {
+        $definition = new Definition(
+            'SmartCore\\Bundle\\SettingsBundle\\Cache\\CacheProvider', [
+                new Reference($cache_proviver_id),
+            ]
+        );
+
+        $definition->setPublic(true);
+
+        $container->setDefinition('smart_core.settings.cache',$definition);
     }
 }

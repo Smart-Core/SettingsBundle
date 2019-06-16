@@ -9,8 +9,8 @@ use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
- * @ORM\Entity
- * @ORM\HasLifecycleCallbacks
+ * @ORM\Entity()
+ * @ORM\HasLifecycleCallbacks()
  * @ORM\Table(name="settings",
  *      indexes={
  *          @ORM\Index(columns={"category"}),

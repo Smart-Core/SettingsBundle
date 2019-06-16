@@ -25,7 +25,7 @@ abstract class SettingModel
     /**
      * @var string
      *
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="string", length=64, nullable=true)
      */
     protected $category;
 

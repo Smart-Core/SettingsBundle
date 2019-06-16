@@ -4,24 +4,19 @@ declare(strict_types=1);
 
 namespace SmartCore\Bundle\SettingsBundle\DependencyInjection\Compiler;
 
+use SmartCore\Bundle\SettingsBundle\Manager\SettingsManager;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * @deprecated В sf4 приходит не с компилированный контейнер на TYPE_AFTER_REMOVING, по этому нету коннекта к бд.
+ */
 class SettingsPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        try {
-            /** @var \Doctrine\ORM\EntityManager $em */
-            $em = $container->get('doctrine.orm.entity_manager');
-        } catch (\Doctrine\DBAL\Exception\ConnectionException $e) {
-            if ($container->getParameter('kernel.debug')) {
-                echo __CLASS__.': Unavailable DB connection. Please fix it and rebuild cache.';
-            }
+        $lockFile = $container->getParameter('kernel.cache_dir').'/'.SettingsManager::LOCK_FILE;
 
-            return;
-        }
-
-        $container->get('settings')->warmupDatabase();
+        file_put_contents($lockFile, '');
     }
 }

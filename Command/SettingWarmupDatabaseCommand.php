@@ -4,22 +4,26 @@ declare(strict_types=1);
 
 namespace SmartCore\Bundle\SettingsBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
-class SettingWarmupDatabaseCommand extends ContainerAwareCommand
+class SettingWarmupDatabaseCommand extends Command
 {
+    use ContainerAwareTrait;
+
+    protected static $defaultName = 'smart:settings:warmup-database';
+
     protected function configure()
     {
         $this
-            ->setName('smart:settings:warmup-database')
             ->setDescription('Warmup database settings.')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getContainer()->get('settings')->warmupDatabase();
+        $this->container->get('settings')->warmupDatabase();
     }
 }

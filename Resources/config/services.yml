@@ -2,14 +2,20 @@ services:
     smart_core.settings.manager:
         class: SmartCore\Bundle\SettingsBundle\Manager\SettingsManager
         public: true
-        arguments: [ '@service_container', '@doctrine_cache.providers.doctrine.orm.default_metadata_cache' ]
+        arguments: [ '@service_container', '@smart_core.settings.cache']
 
-#    smart_core.settings.table_prefix_subscriber:
-#        class: SmartCore\Bundle\SettingsBundle\Subscriber\TablePrefixSubscriber
-#        arguments: [ "%smart_core.settings.table_prefix%" ]
-#        public: false
-#        tags:
-#            - { name: doctrine.event_subscriber }
+    smart_core.settings.warmap.listener:
+        class: SmartCore\Bundle\SettingsBundle\Listener\WarmupDatabaseListener
+        arguments: [ '@smart_core.settings.manager', '%kernel.cache_dir%', '%kernel.debug%' ]
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onRequest }
+
+    smart_core.settings.warmap.command:
+        class: SmartCore\Bundle\SettingsBundle\Command\SettingWarmupDatabaseCommand
+        calls:
+            - [ setContainer, [ '@service_container' ] ]
+        tags:
+            - { name: console.command, command: 'smart:settings:warmup-database' }
 
     smart_core.settings.twig_extension:
         class: SmartCore\Bundle\SettingsBundle\Twig\SettingsExtension

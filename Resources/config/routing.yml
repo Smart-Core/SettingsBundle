@@ -1,33 +1,33 @@
 smart_core_settings:
     path: /
     defaults:
-        _controller: SmartSettingsBundle:Settings:index
+        _controller: SmartCore\Bundle\SettingsBundle\Controller\SettingsController::indexAction
 
 smart_core_settings_personal:
     path: /personal/
     defaults:
-        _controller: SmartSettingsBundle:Settings:index
+        _controller: SmartCore\Bundle\SettingsBundle\Controller\SettingsController::indexAction
         personal: true
 
 smart_core_setting_edit:
     path: /{bundle}:{name}/
     defaults:
-        _controller: SmartSettingsBundle:Settings:edit
+        _controller: SmartCore\Bundle\SettingsBundle\Controller\SettingsController::editAction
 
 smart_core_setting_edit_personal:
     path: /personal/{bundle}:{name}/
     defaults:
-        _controller: SmartSettingsBundle:Settings:edit
+        _controller: SmartCore\Bundle\SettingsBundle\Controller\SettingsController::editAction
         personal: true
 
 smart_core_setting_history:
     path: /{bundle}:{name}/history/
     defaults:
-        _controller: SmartSettingsBundle:Settings:history
+        _controller: SmartCore\Bundle\SettingsBundle\Controller\SettingsController::historyAction
 
 smart_core_setting_history_rollback:
     path: /rollback/{id}/
     defaults:
-        _controller: SmartSettingsBundle:Settings:rollback
+        _controller: SmartCore\Bundle\SettingsBundle\Controller\SettingsController::rollbackAction
     requirements:
         id: \d+

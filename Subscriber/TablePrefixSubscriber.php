@@ -10,6 +10,7 @@ use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 /**
  * @deprecated
  */
+
 class TablePrefixSubscriber implements EventSubscriber
 {
     protected $prefix = '';

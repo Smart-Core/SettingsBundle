@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace SmartCore\Bundle\SettingsBundle\Command;
 
 use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
@@ -25,7 +23,7 @@ class SettingListCommand extends ContainerAwareCommand
     {
         $style = new TableStyle();
         $style
-            ->setVerticalBorderChar(' ')
+            ->setVerticalBorderChars(' ')
             ->setCrossingChar(' ')
         ;
 

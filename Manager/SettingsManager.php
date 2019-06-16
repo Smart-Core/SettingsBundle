@@ -4,26 +4,29 @@ declare(strict_types=1);
 
 namespace SmartCore\Bundle\SettingsBundle\Manager;
 
-use Doctrine\Common\Cache\CacheProvider;
-use Doctrine\DBAL\Exception\ConnectionException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Tools\SchemaValidator;
+use Symfony\Component\Security\Core\User\UserInterface;
+use SmartCore\Bundle\SettingsBundle\Cache\CacheProvider;
+use SmartCore\Bundle\SettingsBundle\Cache\DummyCacheProvider;
 use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use SmartCore\Bundle\SettingsBundle\Entity\SettingHistory;
 use SmartCore\Bundle\SettingsBundle\Entity\SettingPersonal;
 use SmartCore\Bundle\SettingsBundle\Model\SettingHistoryModel;
 use SmartCore\Bundle\SettingsBundle\Model\SettingModel;
 use SmartCore\Bundle\SettingsBundle\Model\SettingPersonalModel;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Yaml\Yaml;
 
 class SettingsManager
 {
     use ContainerAwareTrait;
+
+    const LOCK_FILE = 'smart_core_settings_need_warmap_db.lock';
 
     /** @var \Doctrine\ORM\EntityManager $em */
     protected $em;
@@ -43,11 +46,18 @@ class SettingsManager
     /** @var array */
     protected $settingsConfigRuntimeCache;
 
+    /** @var array */
+    protected $bundles;
+
     /**
+     * SettingsManager constructor.
+     *
      * @param ContainerInterface $container
+     * @param CacheProvider      $cache
      */
     public function __construct(ContainerInterface $container, CacheProvider $cache)
     {
+        $this->bundles   = $container->getParameter('kernel.bundles');
         $this->cache     = $cache;
         $this->container = $container;
         $this->em        = $container->get('doctrine.orm.entity_manager');
@@ -161,7 +171,7 @@ class SettingsManager
 
         $cache_key = $this->getCacheKey($bundle, $name, $this->getUserId());
 
-        if (false == $value = $this->cache->fetch($cache_key)) {
+        if (false == $value = $this->cache->get($cache_key)) {
             $this->initRepo();
 
             try {
@@ -195,7 +205,7 @@ class SettingsManager
                 return null;
             }
 
-            $this->cache->save($cache_key, $value);
+            $this->cache->set($cache_key, $value);
         }
 
         return $value;
@@ -464,7 +474,7 @@ class SettingsManager
     {
         $settingsConfig = [];
 
-        foreach ($this->container->getParameter('kernel.bundles') as $bundleName => $bundleClass) {
+        foreach ($this->bundles as $bundleName => $bundleClass) {
             /** @var \Symfony\Component\HttpKernel\Bundle\Bundle $bundle */
             $bundle = new $bundleClass();
 
@@ -551,7 +561,7 @@ class SettingsManager
      *
      * @return bool
      */
-    public function hasSettingPersonal(SettingModel $setting): bool
+    public function hasSettingPersonal(SettingModel $setting)
     {
         $token = $this->container->get('security.token_storage')->getToken();
 
@@ -574,29 +584,27 @@ class SettingsManager
         $userId = 0;
 
         $token = $this->container->get('security.token_storage')->getToken();
-        if ($token instanceof TokenInterface and $token->getUser() instanceof UserInterface) {
+        if ($token instanceof TokenInterface
+            and $token->getUser() instanceof UserInterface
+            and method_exists($token->getUser(), 'getId')
+        ) {
             $userId = $token->getUser()->getId();
         }
 
         return $userId;
     }
-    
+
     /**
      * @throws \Exception
      */
     public function warmupDatabase()
     {
         $validator = new SchemaValidator($this->em);
-
-        try {
-            if (false === $validator->schemaInSyncWithMetadata()) {
-                return;
-            }
-        } catch (ConnectionException $e) {
+        if ($this->em->getConnection()->getDatabasePlatform()->getName() != 'sqlite' and false === $validator->schemaInSyncWithMetadata()) {
             return;
         }
 
-        foreach ($this->container->getParameter('kernel.bundles') as $bundleName => $bundleClass) {
+        foreach ($this->bundles as $bundleName => $bundleClass) {
             $reflector = new \ReflectionClass($bundleClass);
             $settingsConfig = dirname($reflector->getFileName()).'/Resources/config/settings.yml';
 
@@ -620,9 +628,8 @@ class SettingsManager
 
                             if(isset($val['value'])) {
                                 $val = $val['value'];
-
                             } else {
-                                throw new \Exception("Missing value for key '$name' in Bundle '$bundleName'.");
+                                $val = null;
                             }
                         }
 
