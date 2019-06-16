@@ -10,7 +10,7 @@ abstract class SettingPersonalModel
 {
     use ColumnTrait\Id;
     use ColumnTrait\CreatedAt;
-    use ColumnTrait\FosUser;
+    //use ColumnTrait\User;
     use ColumnTrait\UpdatedAt;
 
     /**

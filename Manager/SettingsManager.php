@@ -2,13 +2,11 @@
 
 namespace SmartCore\Bundle\SettingsBundle\Manager;
 
-use function Couchbase\defaultDecoder;
 use Doctrine\Common\Cache\CacheProvider;
+use Doctrine\DBAL\Exception\ConnectionException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Tools\SchemaValidator;
-use FOS\UserBundle\Model\UserInterface;
-use SmartCore\Bundle\SettingsBundle\Cache\DummyCacheProvider;
 use SmartCore\Bundle\SettingsBundle\Entity\Setting;
 use SmartCore\Bundle\SettingsBundle\Entity\SettingHistory;
 use SmartCore\Bundle\SettingsBundle\Entity\SettingPersonal;
@@ -18,6 +16,7 @@ use SmartCore\Bundle\SettingsBundle\Model\SettingPersonalModel;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Yaml\Yaml;
 
 class SettingsManager
@@ -586,7 +585,12 @@ class SettingsManager
     public function warmupDatabase()
     {
         $validator = new SchemaValidator($this->em);
-        if (false === $validator->schemaInSyncWithMetadata()) {
+
+        try {
+            if (false === $validator->schemaInSyncWithMetadata()) {
+                return;
+            }
+        } catch (ConnectionException $e) {
             return;
         }
 
